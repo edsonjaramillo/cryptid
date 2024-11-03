@@ -31,7 +31,9 @@ do
     fi
     
     # Build the program for the specified platform and put the output in the dist directory
-    env GOOS=$GOOS GOARCH=$GOARCH go build -o $dist_dir/$platform/$output_name cmd/$package_name/$package_name.go
+    binary="$dist_dir/$platform/$output_name"
+    env GOOS=$GOOS GOARCH=$GOARCH go build -o $binary cmd/$package_name/$package_name.go
+    chmod +x $binary
     
     # If the build failed, print an error message and exit the script
     if [ $? -ne 0 ]; then
