@@ -12,67 +12,71 @@ This tool is ideal for developers and security professionals who need reliable c
 
 ### Password Generation
 
-```console
+```bash
 cryptid password complex -length 16
-# Output: ljLoqT5BcfB27@BH
+# Output: O(lIJj+Zp|=<0{5-
 ```
 
-```console
+```bash
 cryptid password complex -l 20 -no-numbers -no-symbols
 # Output: YCuPnnmrLWcOQzJjYgcB
 ```
 
 ### JWT Secret
 
-```console
+```bash
 cryptid jwt hs256
 # Output: m^2KW?2P%NF6ci3Ns8AV5E)^2*!2?(?S
 ```
 
 ### AES Encryption
 
-```console
+```bash
 cryptid aes encrypt -f secret.txt -o secret.enc -passphrase mypass
 ```
 
-```console
+```bash
 cryptid aes decrypt -f secret.enc -o secret.txt -passphrase mypass
 ```
+
+## Installation
+
+Will be published to public repositories soon. For now, you can download the binary for your platform from the links below.
 
 ## Downloads
 
 ### macOS (Apple Silicon)
 
-```console
+```bash
 curl -LJO https://raw.githubusercontent.com/edsonjaramillo/cryptid/main/dist/darwin/arm64/cryptid
 ```
 
 ### macOS (Intel)
 
-```console
+```bash
 curl -LJO https://raw.githubusercontent.com/edsonjaramillo/cryptid/main/dist/darwin/amd64/cryptid
 ```
 
 ### Linux (x86_64)
 
-```console
+```bash
  curl -LJO https://raw.githubusercontent.com/edsonjaramillo/cryptid/main/dist/linux/amd64/cryptid
 ```
 
 ### Linux (ARM64)
 
-```console
+```bash
 curl -LJO https://raw.githubusercontent.com/edsonjaramillo/cryptid/main/dist/linux/arm64/cryptid
 ```
 
 ### Windows (x86_64)
 
-```console
+```bash
 curl -LJO https://raw.githubusercontent.com/edsonjaramillo/cryptid/main/dist/windows/amd64/cryptid.exe
 ```
 
 ### Windows (ARM64)
 
-```console
+```bash
 curl -LJO https://raw.githubusercontent.com/edsonjaramillo/cryptid/main/dist/windows/arm64/cryptid.exe
 ```
