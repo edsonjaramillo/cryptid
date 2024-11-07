@@ -1,5 +1,5 @@
 # Go Variables
-CRYPTO_CMD = go run cmd/cryptid/cryptid.go
+CRYPTO_CMD = go run cmd/cryptid.go
 
 # Commands
 AES_CMD = $(CRYPTO_CMD) aes
