@@ -11,13 +11,14 @@ FILE_TO_ENCRYPT = .env
 FILE_TO_DECRYPT = env.enc
 PASSPHRASE = 123
 
+VERSION = "v1.0.0"
+
 # Targets
 all:
 	$(CRYPTO_CMD)
 
 build:
-	bash scripts/build.bash
-	cp dist/darwin/arm64/cryptid ~/.local/bin/cryptid
+	bash scripts/build.bash $(VERSION)
 
 format:
 	find . -type f -name "*.go" -exec go fmt {} \;
