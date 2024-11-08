@@ -48,8 +48,10 @@ build() {
 }
 
 export -f build
+export output_name
+export package_name
 
 # Build in parallel
 printf "%s\n" "${platforms[@]}" | xargs -n 1 -P 4 -I {} bash -c 'build "{}"'
 
-echo "Build completed successfully."
+# echo "Build completed successfully."
