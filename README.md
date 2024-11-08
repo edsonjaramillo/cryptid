@@ -29,6 +29,16 @@ cryptid jwt hs256
 # Output: m^2KW?2P%NF6ci3Ns8AV5E)^2*!2?(?S
 ```
 
+```bash
+cryptid jwt hs384
+# Output: Cw)WkT?3>R>vN![;ZxZagfPr[X,vCSpN_42N.1XJlT0OnmVu
+```
+
+```bash
+cryptid jwt hs512
+# Output: x$;M6QH806^T<_#PH7,t#FEyLcO:@zfu+D2)@3C*W5MOkw3P?s0<9}AZ84EgR,uh
+```
+
 ### AES Encryption
 
 ```bash
