@@ -1,43 +1,55 @@
 #!/bin/bash
 
-# The name of the package. This is used in the name of the output file.
+set -e
+
+# Get the first argument as the version
+version="$1"
+
+# Check if version matches the format v[0-9].[0-9].[0-9]
+if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "Invalid version number. Please use the format v1.0.0"
+    exit 1
+fi
+
+# Package name and output name
 package_name="cryptid"
+output_name="${package_name}-${version}"
 
-# The directory where the output files will be placed.
-dist_dir="dist"
+# Platforms to build for
+platforms=(
+    "darwin/amd64" "darwin/arm64"
+    "linux/amd64" "linux/arm64"
+    "freebsd/amd64" "freebsd/arm64"
+    "windows/amd64" "windows/arm64"
+)
 
-# An array of the platforms we want to build for. Each platform is a string in the format OS/ARCH.
-platforms=("darwin/amd64" "darwin/arm64" "linux/amd64" "linux/arm64" "windows/amd64" "windows/arm64")
+# Ensure the dist directory exists
+mkdir -p dist
 
-# If you need another build target run "go tool dist list" and add it to the platforms array
-
-# Loop over each platform
-for platform in "${platforms[@]}"
-do
-    # Split the platform into OS and ARCH
-    platform_split=(${platform//\// })
+build() {
+    local platform="$1"
+    local platform_split=(${platform//\// })
+    local GOOS="${platform_split[0]}"
+    local GOARCH="${platform_split[1]}"
     
-    GOOS=${platform_split[0]}
-    GOARCH=${platform_split[1]}
+    echo "Building for $GOOS-$GOARCH"
     
-    # Construct the output name using the package name and the platform
-    output_name=$package_name
+    local binary="dist/${output_name}-${GOOS}-${GOARCH}"
     
-    echo 'Building for '$GOOS'-'$GOARCH
-    
-    # If the OS is Windows, add a .exe extension to the output name
-    if [ $GOOS = "windows" ]; then
-        output_name+='.exe'
+    if [[ "$GOOS" == "windows" ]]; then
+        binary+=".exe"
     fi
     
-    # Build the program for the specified platform and put the output in the dist directory
-    binary="$dist_dir/$platform/$output_name"
-    env GOOS=$GOOS GOARCH=$GOARCH go build -o $binary cmd/$package_name/$package_name.go
-    chmod +x $binary
+    env GOOS="$GOOS" GOARCH="$GOARCH" go build -o "$binary" "cmd/${package_name}.go"
+    chmod +x "$binary"
     
-    # If the build failed, print an error message and exit the script
-    if [ $? -ne 0 ]; then
-        echo 'An error has occurred! Aborting the script execution...'
-        exit 1
-    fi
-done
+    tar -czf "${binary}.tar.gz" -C dist "$(basename "$binary")"
+    rm "$binary"
+}
+
+export -f build
+
+# Build in parallel
+printf "%s\n" "${platforms[@]}" | xargs -n 1 -P 4 -I {} bash -c 'build "{}"'
+
+echo "Build completed successfully."
