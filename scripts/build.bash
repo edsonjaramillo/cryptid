@@ -34,7 +34,8 @@ build() {
     
     echo "Building for $GOOS-$GOARCH"
     
-    local binary="dist/${output_name}-${GOOS}-${GOARCH}"
+    local binary="dist/$package_name"
+    local tar_name="dist/${output_name}-${GOOS}-${GOARCH}.tar.gz"
     
     if [[ "$GOOS" == "windows" ]]; then
         binary+=".exe"
@@ -43,7 +44,7 @@ build() {
     env GOOS="$GOOS" GOARCH="$GOARCH" go build -o "$binary" "cmd/${package_name}.go"
     chmod +x "$binary"
     
-    tar -czf "${binary}.tar.gz" -C dist "$(basename "$binary")"
+    tar -czf "$tar_name" -C dist "$package_name"
     rm "$binary"
 }
 
