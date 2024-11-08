@@ -64,14 +64,14 @@ func decryptAction(cCtx *cli.Context) error {
 
 var passphraseFlag = &cli.StringFlag{
 	Name:     "passphrase",
-	Aliases:  []string{"p"},
+	Aliases:  []string{"p", "password"},
 	Usage:    "Enter passphrase.",
 	Required: true,
 }
 
 var inputFileFlag = &cli.StringFlag{
 	Name:     "file",
-	Aliases:  []string{"f"},
+	Aliases:  []string{"f", "input"},
 	Usage:    "Enter input file.",
 	Required: true,
 }

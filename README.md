@@ -42,11 +42,11 @@ cryptid jwt hs512
 ### AES Encryption
 
 ```bash
-cryptid aes encrypt -f secret.txt -o secret.enc -passphrase mypass
+cryptid aes encrypt -f secret.txt -o secret.enc -p abc123
 ```
 
 ```bash
-cryptid aes decrypt -f secret.enc -o secret.txt -passphrase mypass
+cryptid aes decrypt -f secret.enc -o secret.txt -p abc123
 ```
 
 ## Installation
