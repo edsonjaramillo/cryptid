@@ -32,20 +32,20 @@ build() {
     local GOOS="${platform_split[0]}"
     local GOARCH="${platform_split[1]}"
     
-    echo "Building for $GOOS-$GOARCH"
+    # echo "Building for $GOOS-$GOARCH"
     
-    local binary="dist/$package_name"
+    local binary_dir="dist/binaries/$GOOS-$GOARCH"
+    local binary="$package_name"
     local tar_name="dist/${output_name}-${GOOS}-${GOARCH}.tar.gz"
     
     if [[ "$GOOS" == "windows" ]]; then
         binary+=".exe"
     fi
     
-    env GOOS="$GOOS" GOARCH="$GOARCH" go build -o "$binary" "cmd/${package_name}.go"
-    chmod +x "$binary"
+    env GOOS="$GOOS" GOARCH="$GOARCH" go build -o "$binary_dir/$binary" "cmd/$package_name.go"
+    chmod +x "$binary_dir/$binary"
     
-    tar -czf "$tar_name" -C dist "$package_name"
-    rm "$binary"
+    tar -czf "$tar_name" -C "$binary_dir" "$binary"
 }
 
 export -f build
@@ -53,6 +53,6 @@ export output_name
 export package_name
 
 # Build in parallel
-printf "%s\n" "${platforms[@]}" | xargs -n 1 -P 4 -I {} bash -c 'build "{}"'
+printf "%s\n" "${platforms[@]}" | xargs -n 1 -P 4 -I {} bash -c 'build "{}"' && rm -rf dist/binaries
 
-# echo "Build completed successfully."
+echo "Build completed successfully."
