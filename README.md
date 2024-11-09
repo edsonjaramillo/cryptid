@@ -8,6 +8,12 @@ Cryptid is a versatile CLI tool designed for secure and efficient cryptographic 
 
 This tool is ideal for developers and security professionals who need reliable cryptographic utilities in their workflow.
 
+## Installation
+
+```bash
+sudo curl -fsSL https://raw.githubusercontent.com/edsonjaramillo/cryptid/main/install.sh | bash
+```
+
 ## Usage
 
 ### Password Generation
@@ -47,46 +53,4 @@ cryptid aes encrypt -f secret.txt -o secret.enc -p abc123
 
 ```bash
 cryptid aes decrypt -f secret.enc -o secret.txt -p abc123
-```
-
-## Installation
-
-Will be published to public repositories soon. For now, you can download the binary for your platform from the links below.
-
-## Downloads
-
-### macOS (Apple Silicon)
-
-```bash
-curl -LJO https://raw.githubusercontent.com/edsonjaramillo/cryptid/main/dist/darwin/arm64/cryptid
-```
-
-### macOS (Intel)
-
-```bash
-curl -LJO https://raw.githubusercontent.com/edsonjaramillo/cryptid/main/dist/darwin/amd64/cryptid
-```
-
-### Linux (x86_64)
-
-```bash
- curl -LJO https://raw.githubusercontent.com/edsonjaramillo/cryptid/main/dist/linux/amd64/cryptid
-```
-
-### Linux (ARM64)
-
-```bash
-curl -LJO https://raw.githubusercontent.com/edsonjaramillo/cryptid/main/dist/linux/arm64/cryptid
-```
-
-### Windows (x86_64)
-
-```bash
-curl -LJO https://raw.githubusercontent.com/edsonjaramillo/cryptid/main/dist/windows/amd64/cryptid.exe
-```
-
-### Windows (ARM64)
-
-```bash
-curl -LJO https://raw.githubusercontent.com/edsonjaramillo/cryptid/main/dist/windows/arm64/cryptid.exe
 ```
