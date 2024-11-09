@@ -18,7 +18,7 @@ all:
 	$(CRYPTO_CMD)
 
 build:
-	bash scripts/build.bash $(VERSION)
+	sh build.sh $(VERSION)
 
 format:
 	find . -type f -name "*.go" -exec go fmt {} \;
