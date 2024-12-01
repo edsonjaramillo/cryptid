@@ -43,7 +43,7 @@ var hs256Action = func(cCtx *cli.Context) error {
 	noConsole := cCtx.Bool("no-console")
 	noClipboard := cCtx.Bool("no-clipboard")
 
-	hs256Secret := password.Generate(32, false, false)
+	hs256Secret := password.GenerateRandom(32, false, false)
 
 	flags.NoConsolePrinter(noConsole, hs256Secret)
 
@@ -56,7 +56,7 @@ var hs384Action = func(cCtx *cli.Context) error {
 	noConsole := cCtx.Bool("no-console")
 	noClipboard := cCtx.Bool("no-clipboard")
 
-	hs384Secret := password.Generate(48, false, false)
+	hs384Secret := password.GenerateRandom(48, false, false)
 
 	flags.NoConsolePrinter(noConsole, hs384Secret)
 
@@ -69,7 +69,7 @@ var hs512Action = func(cCtx *cli.Context) error {
 	noConsole := cCtx.Bool("no-console")
 	noClipboard := cCtx.Bool("no-clipboard")
 
-	hs512Secret := password.Generate(64, false, false)
+	hs512Secret := password.GenerateRandom(64, false, false)
 
 	flags.NoConsolePrinter(noConsole, hs512Secret)
 

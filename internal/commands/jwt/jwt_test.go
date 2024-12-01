@@ -20,7 +20,7 @@ func TestGenerateSecret(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		secret := password.Generate(tc.length, true, true)
+		secret := password.GenerateRandom(tc.length, true, true)
 
 		if tc.expectError && secret != "" {
 			t.Errorf("Expected error, got nil")

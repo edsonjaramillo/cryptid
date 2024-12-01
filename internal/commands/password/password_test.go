@@ -25,7 +25,7 @@ func TestGenerate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			password := password.Generate(tc.length, tc.withNumbers, tc.withSpecial)
+			password := password.GenerateRandom(tc.length, tc.withNumbers, tc.withSpecial)
 			if len(password) != tc.length {
 				t.Errorf("Expected password length %d, got %d", tc.length, len(password))
 			}

@@ -30,7 +30,7 @@ func complexAction(cCtx *cli.Context) error {
 	noClipboard := cCtx.Bool("no-clipboard")
 	noConsole := cCtx.Bool("no-console")
 
-	passwordGenerated := Generate(length, noNumbers, noSymbols)
+	passwordGenerated := GenerateRandom(length, noNumbers, noSymbols)
 
 	flags.NoConsolePrinter(noConsole, passwordGenerated)
 	flags.ClipboardPrinter(noClipboard, passwordGenerated)
@@ -79,7 +79,7 @@ const symbols = "!#$%&()*+,-.:;<=>?@[]^_{|}~"
 //
 // Returns:
 // - A randomly generated password as a string.
-func Generate(length int, noNumbers bool, noSymbols bool) string {
+func GenerateRandom(length int, noNumbers bool, noSymbols bool) string {
 
 	charset := alphabet
 
