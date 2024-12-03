@@ -45,6 +45,8 @@ no-console:
 no-clipboard:
 	$(PASSWORD_CMD) complex -no-clipboard
 
+passphrase:
+	$(PASSWORD_CMD) passphrase
 # JWT targets
 
 256:
