@@ -30,7 +30,7 @@ cryptid password complex -l 20 -no-numbers -no-symbols
 
 ```bash
 cryptid password passphrase -c 5
-# Output: Apple-Orange4-Strawberry-Blueberry-Blackberry
+# Output: Apple-Orange4-Strawberry-Blueberry-Blackberry$
 ```
 
 ### JWT Secret
