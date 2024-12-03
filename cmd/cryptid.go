@@ -17,7 +17,7 @@ This tool is ideal for developers & security professionals who need reliable cry
 func main() {
 	app := &cli.App{
 		Name:     "cryptid",
-		Version:  "v1.0.0",
+		Version:  "v1.1.0",
 		Usage:    Usage,
 		Commands: []*cli.Command{password.PasswordCommand, jwt.JWTSecretsCommand, aes.AESCommand},
 	}
