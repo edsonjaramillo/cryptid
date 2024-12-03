@@ -1,16 +1,30 @@
 package password
 
 import (
+	"fmt"
+	"os"
+	"strings"
+
 	"github.com/edsonjaramillo/crpytid/internal/flags"
 	"github.com/edsonjaramillo/crpytid/internal/random"
 	"github.com/urfave/cli/v2"
 )
 
+const (
+	wordsFilePath = "internal/commands/password/words.txt"
+)
+
+// go:embed words.txt
+var wordsFileContent string
+
+var words, _ = getWords()
+var maxWordListIndex int = len(words) - 1
+
 // Main Password command
 var PasswordCommand = &cli.Command{
 	Name:        "password",
 	Usage:       "Generate passwords",
-	Subcommands: []*cli.Command{complexSubcommand},
+	Subcommands: []*cli.Command{complexSubcommand, passphraseSubcommand},
 }
 
 // Subcommands
@@ -19,6 +33,13 @@ var complexSubcommand = &cli.Command{
 	Usage:  "Generate a complex password. Ex: n48h@3fj!2f",
 	Flags:  []cli.Flag{complexLengthFlag, noNumbersFlag, noSymbolsFlag, flags.NoClipboardFlag, flags.NoConsoleFlag},
 	Action: complexAction,
+}
+
+var passphraseSubcommand = &cli.Command{
+	Name:   "passphrase",
+	Usage:  "Generate a passphrase. Ex: Apple-Banana9-Orange$",
+	Flags:  []cli.Flag{numberOfWordsFlag, passphraseSeparatorFlag, flags.NoClipboardFlag, flags.NoConsoleFlag},
+	Action: passphraseAction,
 }
 
 // Actions
@@ -34,6 +55,20 @@ func complexAction(cCtx *cli.Context) error {
 
 	flags.NoConsolePrinter(noConsole, passwordGenerated)
 	flags.ClipboardPrinter(noClipboard, passwordGenerated)
+
+	return nil
+}
+
+func passphraseAction(cCtx *cli.Context) error {
+	numberOfWords := cCtx.Int("words")
+	separator := cCtx.String("separator")
+	noClipboard := cCtx.Bool("no-clipboard")
+	noConsole := cCtx.Bool("no-console")
+
+	passphraseGenerated := generatePassphrase(numberOfWords, separator)
+
+	flags.NoConsolePrinter(noConsole, passphraseGenerated)
+	flags.ClipboardPrinter(noClipboard, passphraseGenerated)
 
 	return nil
 }
@@ -60,6 +95,22 @@ var noSymbolsFlag = &cli.BoolFlag{
 	Aliases: []string{"no-specials"},
 	Usage:   "Exclude special characters",
 	Value:   false,
+}
+
+var numberOfWordsFlag = &cli.IntFlag{
+	Name:     "count",
+	Aliases:  []string{"c"},
+	Usage:    "Number of words in the passphrase",
+	Category: "Passphrase Options",
+	Value:    4,
+}
+
+var passphraseSeparatorFlag = &cli.StringFlag{
+	Name:     "separator",
+	Aliases:  []string{"s"},
+	Usage:    "Separator between words",
+	Category: "Passphrase Options",
+	Value:    "-",
 }
 
 // Functionality
@@ -110,4 +161,62 @@ func GenerateRandom(length int, noNumbers bool, noSymbols bool) string {
 	}
 
 	return string(password)
+}
+
+func generatePassphrase(numberOfWords int, separator string) string {
+	// Select which word will get the number
+	wordWithNumberIdx := random.Int(0, numberOfWords-1)
+	passphrase := ""
+
+	for i := 0; i < numberOfWords; i++ {
+		wordIndex := random.Int(0, maxWordListIndex)
+		word := words[wordIndex]
+
+		if i == wordWithNumberIdx {
+			randomNumber := random.Int(0, 100)
+			word += fmt.Sprintf("%d", randomNumber)
+		}
+
+		passphrase += word
+
+		// if it is not the last word, add the separator
+		if i != numberOfWords-1 {
+			passphrase += separator
+		}
+
+	}
+
+	// add a special character at the end
+	randomSymbol := string(symbols[random.Int(0, len(symbols)-1)])
+	passphrase += randomSymbol
+
+	return passphrase
+}
+
+func getWords() ([]string, error) {
+	// Use cached content if available
+	if wordsFileContent != "" {
+		return []string{wordsFileContent}, nil
+	}
+
+	// Read file content
+	content, err := os.ReadFile(wordsFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read words file: %v", err)
+	}
+
+	// Split into lines and clean up
+	words := make([]string, 0)
+	for _, word := range strings.Split(string(content), "\n") {
+		word = strings.TrimSpace(word)
+		if word != "" {
+			words = append(words, word)
+		}
+	}
+
+	if len(words) == 0 {
+		return nil, fmt.Errorf("words file is empty")
+	}
+
+	return words, nil
 }
