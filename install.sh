@@ -15,7 +15,7 @@ get_os() {
         Linux*)   echo "linux" ;;
         FreeBSD*) echo "freebsd" ;;
         MINGW*|MSYS*|CYGWIN*) echo "windows" ;;
-        *) error "Unsupported operating system" ;;
+        *) echo "Unsupported operating system"; exit 1 ;;
     esac
 }
 
@@ -23,14 +23,15 @@ get_arch() {
     case "$(uname -m)" in
         x86_64|amd64) echo "amd64" ;;
         arm64|aarch64) echo "arm64" ;;
-        *) error "Unsupported architecture" ;;
+        *) echo "Unsupported architecture"; exit 1 ;;
     esac
 }
 
 # Get latest release version
 get_latest_version() {
     if ! curl -sL "${GITHUB_API}/releases/latest" | grep -o '"tag_name": "[^"]*' | cut -d'"' -f4; then
-        error "Failed to fetch latest version"
+        echo "Failed to fetch latest version"
+        exit 1
     fi
 }
 
@@ -47,7 +48,8 @@ install() {
     
     # Download and extract
     if ! curl -sL "$url" -o "${tmp}/${archive}"; then
-        error "Download failed"
+        echo "Download failed"
+        exit 1
     fi
     
     tar -xzf "${tmp}/${archive}" -C "$tmp"
@@ -66,7 +68,8 @@ install() {
 
 # Check permissions
 if [ "$(id -u)" -ne 0 ] && [ "$(get_os)" != "windows" ]; then
-    error "This script must be run as root (try using sudo)"
+    echo "Please run as root"
+    exit 1
 fi
 
 # Run installation
