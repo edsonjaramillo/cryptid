@@ -11,7 +11,7 @@ This tool is ideal for developers and security professionals who need reliable c
 ## Installation
 
 ```bash
-sudo curl -fsSL https://raw.githubusercontent.com/edsonjaramillo/cryptid/main/install.sh | bash
+sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/edsonjaramillo/cryptid/main/install.sh)"
 ```
 
 ## Usage
