@@ -31,14 +31,14 @@ var PasswordCommand = &cli.Command{
 var complexSubcommand = &cli.Command{
 	Name:   "complex",
 	Usage:  "Generate a complex password. Ex: n48h@3fj!2f",
-	Flags:  []cli.Flag{complexLengthFlag, noNumbersFlag, noSymbolsFlag, flags.QuietFlag, flags.NoConsoleFlag},
+	Flags:  []cli.Flag{complexLengthFlag, noNumbersFlag, noSymbolsFlag, flags.NoClipboardFlag, flags.QuietFlag},
 	Action: complexAction,
 }
 
 var passphraseSubcommand = &cli.Command{
 	Name:   "passphrase",
 	Usage:  "Generate a passphrase. Ex: Apple-Banana9-Orange$",
-	Flags:  []cli.Flag{numberOfWordsFlag, passphraseSeparatorFlag, flags.QuietFlag, flags.NoConsoleFlag},
+	Flags:  []cli.Flag{numberOfWordsFlag, passphraseSeparatorFlag, flags.NoClipboardFlag, flags.QuietFlag},
 	Action: passphraseAction,
 }
 
@@ -48,12 +48,12 @@ func complexAction(cCtx *cli.Context) error {
 	length := cCtx.Int("length")
 	noNumbers := cCtx.Bool("no-numbers")
 	noSymbols := cCtx.Bool("no-symbols")
-	noClipboard := cCtx.Bool("quiet")
-	noConsole := cCtx.Bool("no-console")
+	noClipboard := cCtx.Bool("no-clipboard")
+	quiet := cCtx.Bool("quiet")
 
 	passwordGenerated := GenerateRandom(length, noNumbers, noSymbols)
 
-	flags.NoConsolePrinter(noConsole, passwordGenerated)
+	flags.QuietPrinter(quiet, passwordGenerated)
 	flags.ClipboardPrinter(noClipboard, passwordGenerated)
 
 	return nil
@@ -62,12 +62,12 @@ func complexAction(cCtx *cli.Context) error {
 func passphraseAction(cCtx *cli.Context) error {
 	numberOfWords := cCtx.Int("count")
 	separator := cCtx.String("separator")
-	noClipboard := cCtx.Bool("quiet")
-	noConsole := cCtx.Bool("no-console")
+	noClipboard := cCtx.Bool("no-clipboard")
+	quiet := cCtx.Bool("quiet")
 
 	passphraseGenerated := generatePassphrase(numberOfWords, separator)
 
-	flags.NoConsolePrinter(noConsole, passphraseGenerated)
+	flags.QuietPrinter(quiet, passphraseGenerated)
 	flags.ClipboardPrinter(noClipboard, passphraseGenerated)
 
 	return nil

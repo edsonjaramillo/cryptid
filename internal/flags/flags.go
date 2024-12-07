@@ -7,11 +7,10 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var QuietFlag = &cli.BoolFlag{
-	Name:    "quiet",
-	Aliases: []string{"q"},
-	Usage:   "Do not copy the password to the clipboard",
-	Value:   false,
+var NoClipboardFlag = &cli.BoolFlag{
+	Name:  "no-clipboard",
+	Usage: "Do not copy the password to the clipboard",
+	Value: false,
 }
 
 // ClipboardPrinter copies the provided text to the clipboard if the status is false.
@@ -34,17 +33,18 @@ func ClipboardPrinter(status bool, text string) {
 	}
 }
 
-var NoConsoleFlag = &cli.BoolFlag{
-	Name:  "no-console",
-	Usage: "Do not print the password to the console",
-	Value: false,
+var QuietFlag = &cli.BoolFlag{
+	Name:    "quiet",
+	Aliases: []string{"q"},
+	Usage:   "Do not print the password to the console",
+	Value:   false,
 }
 
-// NoConsolePrinter prints the provided text to the console if the status is false.
+// QuietPrinter prints the provided text to the console if the status is false.
 // This function is useful for suppressing console output when the user specifies a flag.
 // If the status is true, the text is not printed to the console.
-// This function is intended to be used in conjunction with the NoConsoleFlag.
-func NoConsolePrinter(status bool, text string) {
+// This function is intended to be used in conjunction with the QuietFlag.
+func QuietPrinter(status bool, text string) {
 	if !status {
 		fmt.Println(text)
 	}
