@@ -7,9 +7,9 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var NoClipboardFlag = &cli.BoolFlag{
-	Name:    "no-clipboard",
-	Aliases: []string{"no-clip"},
+var QuietFlag = &cli.BoolFlag{
+	Name:    "quiet",
+	Aliases: []string{"q"},
 	Usage:   "Do not copy the password to the clipboard",
 	Value:   false,
 }

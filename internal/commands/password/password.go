@@ -31,14 +31,14 @@ var PasswordCommand = &cli.Command{
 var complexSubcommand = &cli.Command{
 	Name:   "complex",
 	Usage:  "Generate a complex password. Ex: n48h@3fj!2f",
-	Flags:  []cli.Flag{complexLengthFlag, noNumbersFlag, noSymbolsFlag, flags.NoClipboardFlag, flags.NoConsoleFlag},
+	Flags:  []cli.Flag{complexLengthFlag, noNumbersFlag, noSymbolsFlag, flags.QuietFlag, flags.NoConsoleFlag},
 	Action: complexAction,
 }
 
 var passphraseSubcommand = &cli.Command{
 	Name:   "passphrase",
 	Usage:  "Generate a passphrase. Ex: Apple-Banana9-Orange$",
-	Flags:  []cli.Flag{numberOfWordsFlag, passphraseSeparatorFlag, flags.NoClipboardFlag, flags.NoConsoleFlag},
+	Flags:  []cli.Flag{numberOfWordsFlag, passphraseSeparatorFlag, flags.QuietFlag, flags.NoConsoleFlag},
 	Action: passphraseAction,
 }
 
@@ -48,7 +48,7 @@ func complexAction(cCtx *cli.Context) error {
 	length := cCtx.Int("length")
 	noNumbers := cCtx.Bool("no-numbers")
 	noSymbols := cCtx.Bool("no-symbols")
-	noClipboard := cCtx.Bool("no-clipboard")
+	noClipboard := cCtx.Bool("quiet")
 	noConsole := cCtx.Bool("no-console")
 
 	passwordGenerated := GenerateRandom(length, noNumbers, noSymbols)
@@ -60,9 +60,9 @@ func complexAction(cCtx *cli.Context) error {
 }
 
 func passphraseAction(cCtx *cli.Context) error {
-	numberOfWords := cCtx.Int("words")
+	numberOfWords := cCtx.Int("count")
 	separator := cCtx.String("separator")
-	noClipboard := cCtx.Bool("no-clipboard")
+	noClipboard := cCtx.Bool("quiet")
 	noConsole := cCtx.Bool("no-console")
 
 	passphraseGenerated := generatePassphrase(numberOfWords, separator)

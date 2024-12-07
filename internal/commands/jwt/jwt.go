@@ -17,7 +17,7 @@ var JWTSecretsCommand = &cli.Command{
 var hs256subcommand = &cli.Command{
 	Name:    "hs256",
 	Usage:   "Generate HS256 secrets",
-	Flags:   []cli.Flag{flags.NoConsoleFlag, flags.NoClipboardFlag},
+	Flags:   []cli.Flag{flags.NoConsoleFlag, flags.QuietFlag},
 	Aliases: []string{"HS256", "256"},
 	Action:  hs256Action,
 }
@@ -25,7 +25,7 @@ var hs256subcommand = &cli.Command{
 var hs384subcommand = &cli.Command{
 	Name:    "hs384",
 	Usage:   "Generate HS384 secrets",
-	Flags:   []cli.Flag{flags.NoConsoleFlag, flags.NoClipboardFlag},
+	Flags:   []cli.Flag{flags.NoConsoleFlag, flags.QuietFlag},
 	Aliases: []string{"HS384", "384"},
 	Action:  hs384Action,
 }
@@ -33,7 +33,7 @@ var hs384subcommand = &cli.Command{
 var hs512subcommand = &cli.Command{
 	Name:    "hs512",
 	Usage:   "Generate HS512 secrets",
-	Flags:   []cli.Flag{flags.NoConsoleFlag, flags.NoClipboardFlag},
+	Flags:   []cli.Flag{flags.NoConsoleFlag, flags.QuietFlag},
 	Aliases: []string{"HS512", "512"},
 	Action:  hs512Action,
 }
@@ -41,7 +41,7 @@ var hs512subcommand = &cli.Command{
 // Actions
 var hs256Action = func(cCtx *cli.Context) error {
 	noConsole := cCtx.Bool("no-console")
-	noClipboard := cCtx.Bool("no-clipboard")
+	noClipboard := cCtx.Bool("quiet")
 
 	hs256Secret := password.GenerateRandom(32, false, false)
 
@@ -54,7 +54,7 @@ var hs256Action = func(cCtx *cli.Context) error {
 
 var hs384Action = func(cCtx *cli.Context) error {
 	noConsole := cCtx.Bool("no-console")
-	noClipboard := cCtx.Bool("no-clipboard")
+	noClipboard := cCtx.Bool("quiet")
 
 	hs384Secret := password.GenerateRandom(48, false, false)
 
@@ -67,7 +67,7 @@ var hs384Action = func(cCtx *cli.Context) error {
 
 var hs512Action = func(cCtx *cli.Context) error {
 	noConsole := cCtx.Bool("no-console")
-	noClipboard := cCtx.Bool("no-clipboard")
+	noClipboard := cCtx.Bool("quiet")
 
 	hs512Secret := password.GenerateRandom(64, false, false)
 

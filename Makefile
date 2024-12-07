@@ -42,8 +42,8 @@ only-alphabets:
 no-console:
 	$(PASSWORD_CMD) complex -no-console
 
-no-clipboard:
-	$(PASSWORD_CMD) complex -no-clipboard
+quiet:
+	$(PASSWORD_CMD) complex -quiet
 
 passphrase:
 	$(PASSWORD_CMD) passphrase
