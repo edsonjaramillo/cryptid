@@ -11,7 +11,7 @@ FILE_TO_ENCRYPT = .env
 FILE_TO_DECRYPT = env.enc
 PASSPHRASE = 123
 
-VERSION = "v1.1.0"
+VERSION = "v1.1.1"
 
 # Targets
 all:
