@@ -1,6 +1,7 @@
 package password
 
 import (
+	_ "embed"
 	"fmt"
 	"os"
 	"strings"
@@ -14,11 +15,8 @@ const (
 	wordsFilePath = "internal/commands/password/words.txt"
 )
 
-// go:embed words.txt
+//go:embed words.txt
 var wordsFileContent string
-
-var words, _ = getWords()
-var maxWordListIndex int = len(words) - 1
 
 // Main Password command
 var PasswordCommand = &cli.Command{
@@ -163,13 +161,16 @@ func GenerateRandom(length int, noNumbers bool, noSymbols bool) string {
 	return string(password)
 }
 
-func generatePassphrase(numberOfWords int, separator string) string {
-	// Select which word will get the number
-	wordWithNumberIdx := random.Int(0, numberOfWords-1)
+func generatePassphrase(numberOfWordsNeeded int, separator string) string {
+	wordWithNumberIdx := random.Int(0, numberOfWordsNeeded-1)
+
+	words, numberOfWordsFromList := getWords()
+	maxWordListIdx := numberOfWordsFromList - 1
+
 	passphrase := ""
 
-	for i := 0; i < numberOfWords; i++ {
-		wordIndex := random.Int(0, maxWordListIndex)
+	for i := 0; i < numberOfWordsNeeded; i++ {
+		wordIndex := random.Int(0, maxWordListIdx)
 		word := words[wordIndex]
 
 		if i == wordWithNumberIdx {
@@ -180,7 +181,7 @@ func generatePassphrase(numberOfWords int, separator string) string {
 		passphrase += word
 
 		// if it is not the last word, add the separator
-		if i != numberOfWords-1 {
+		if i != numberOfWordsNeeded-1 {
 			passphrase += separator
 		}
 
@@ -193,16 +194,17 @@ func generatePassphrase(numberOfWords int, separator string) string {
 	return passphrase
 }
 
-func getWords() ([]string, error) {
+func getWords() ([]string, int) {
 	// Use cached content if available
 	if wordsFileContent != "" {
-		return []string{wordsFileContent}, nil
+		words := strings.Split(wordsFileContent, "\n")
+		return words, len(words)
 	}
 
 	// Read file content
 	content, err := os.ReadFile(wordsFilePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read words file: %v", err)
+		return nil, 0
 	}
 
 	// Split into lines and clean up
@@ -215,8 +217,8 @@ func getWords() ([]string, error) {
 	}
 
 	if len(words) == 0 {
-		return nil, fmt.Errorf("words file is empty")
+		return nil, 0
 	}
 
-	return words, nil
+	return words, len(words)
 }
