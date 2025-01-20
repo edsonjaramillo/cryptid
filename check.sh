@@ -57,7 +57,6 @@ WORDS_FILE="./internal/commands/password/words.txt"
 AES_KEY="123"
 
 AES_ENCRYPT_COMMAND="$($EXE aes encrypt -i $WORDS_FILE -o $ENC_WORDS_FILE -p $AES_KEY)"
-ls ./internal/commands/password
 
 # make sure the file is created
 if [ ! -f $ENC_WORDS_FILE ]; then
