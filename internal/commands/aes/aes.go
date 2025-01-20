@@ -42,7 +42,7 @@ var decryptSubcommand = &cli.Command{
 
 func encryptAction(cCtx *cli.Context) error {
 	passphrase := cCtx.String("passphrase")
-	inputFile := cCtx.String("file")
+	inputFile := cCtx.String("input")
 	outputFile := cCtx.String("output")
 
 	encryptFile(inputFile, outputFile, passphrase)
@@ -52,7 +52,7 @@ func encryptAction(cCtx *cli.Context) error {
 
 func decryptAction(cCtx *cli.Context) error {
 	passphrase := cCtx.String("passphrase")
-	inputFile := cCtx.String("file")
+	inputFile := cCtx.String("input")
 	outputFile := cCtx.String("output")
 
 	decryptFile(inputFile, outputFile, passphrase)
@@ -70,8 +70,8 @@ var passphraseFlag = &cli.StringFlag{
 }
 
 var inputFileFlag = &cli.StringFlag{
-	Name:     "file",
-	Aliases:  []string{"f", "input"},
+	Name:     "input",
+	Aliases:  []string{"i"},
 	Usage:    "Enter input file.",
 	Required: true,
 }
@@ -99,6 +99,8 @@ func encryptFile(inputFile, outputFile, passphrase string) error {
 	plaintext, err := os.ReadFile(inputFile)
 	if err != nil {
 		logging.Error("Could not read file")
+		// show the current working directory
+		println(os.Getwd())
 		return err
 	}
 
