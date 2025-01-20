@@ -11,7 +11,7 @@ FILE_TO_ENCRYPT = .env
 FILE_TO_DECRYPT = env.enc
 PASSPHRASE = 123
 
-VERSION = "v1.1.2"
+VERSION = "v1.1.3"
 
 # Targets
 all:
@@ -61,9 +61,9 @@ passphrase:
 # AES targets
 
 encrypt:
-	$(AES_CMD) encrypt -f $(FILE_TO_ENCRYPT) -o $(FILE_TO_DECRYPT) -p "$(PASSPHRASE)"
+	$(AES_CMD) encrypt -i $(FILE_TO_ENCRYPT) -o $(FILE_TO_DECRYPT) -p "$(PASSPHRASE)"
 	@rm $(FILE_TO_ENCRYPT)
 
 decrypt:
-	$(AES_CMD) decrypt -f $(FILE_TO_DECRYPT) -o $(FILE_TO_ENCRYPT) -p "$(PASSPHRASE)"
+	$(AES_CMD) decrypt -i $(FILE_TO_DECRYPT) -o $(FILE_TO_ENCRYPT) -p "$(PASSPHRASE)"
 	@rm $(FILE_TO_DECRYPT)
