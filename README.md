@@ -53,9 +53,9 @@ cryptid jwt hs512
 ### AES Encryption
 
 ```bash
-cryptid aes encrypt -f secret.txt -o secret.enc -p abc123
+cryptid aes encrypt -i secret.txt -o secret.enc -p abc123
 ```
 
 ```bash
-cryptid aes decrypt -f secret.enc -o secret.txt -p abc123
+cryptid aes decrypt -i secret.enc -o secret.txt -p abc123
 ```
