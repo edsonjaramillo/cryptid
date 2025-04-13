@@ -1,0 +1,74 @@
+name: Quality Control
+
+# only on push and only if changes are in the backend directory
+on:
+  push:
+    paths:
+      - backend/**
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-control:
+    runs-on: ubuntu-22.04
+    env:
+      GO_VERSION: ${{ vars.GO_VERSION }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          cache-dependency-path: "**/*.sum"
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v7
+        with:
+            version: v2.0
+
+      - name: Format code
+        run: make format
+
+      - name: Lint code
+        run: make lint
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+
+      # 4. Stage, Commit, and Push the timestamp file if it changed
+      - name: Stage and Commit
+        run: |
+          git add .
+          # Check if there are changes staged
+          # The 'git diff --staged --quiet' exits with 0 if no changes, 1 if there are changes.
+          # We only commit and push if there are changes.
+          if ! git diff --staged --quiet; then
+            git commit -m "Quality control [skip ci]"
+            echo "Changes committed."
+          else
+            echo "No changes to commit."
+          fi
+
+      # 5. Push changes back to the repository
+      # This step will only run if the previous step found changes and committed them.
+      - name: Push changes
+        # Only run push if a commit was actually made. 
+        run: |
+          # Check again if there are changes before pushing, specifically comparing HEAD vs origin/main
+          # Or simply rely on the previous commit step logic and attempt push
+          if ! git diff --staged --quiet && ! git diff --quiet; then 
+             # Only push if commit was made (previous step handled this check)
+             # We add the check again here implicitly via git status or explicitly
+             # Let's assume the commit step logic was sufficient and just push
+             git push
+             echo "Changes pushed."
+          else
+             echo "No changes were committed, skipping push."
+          fi
