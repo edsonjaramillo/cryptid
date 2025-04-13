@@ -22,7 +22,7 @@ prepare:
 	@[ -f $(TEST_FILE) ] || echo "Hello, World!" > $(TEST_FILE)
 
 build-cli:
-	@sh ./backend/scripts/build-cli.sh 0.0.1
+	@sh ./scripts/build-cli.sh 0.0.1
 
 # Encrypt the test file
 encrypt:
