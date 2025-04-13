@@ -26,11 +26,8 @@ jobs:
           cache-dependency-path: "**/*.sum"
           go-version: ${{ env.GO_VERSION }}
 
-      - name: print version
-        run: echo ${{ github.ref_name }}
-
       - name: Build CLI
-        run: make build-cli ${{ github.ref_name }}
+        run: make build-cli VERSION=${{ github.ref_name }}
 
       # get the tar.gz files from the dist directory and upload them to the release
       - name: Release
