@@ -3,6 +3,8 @@ name: Quality Control
 # only on push and only if changes are in the backend directory
 on:
   push:
+    branches:
+      - '*'
     paths:
       - backend/**
 
