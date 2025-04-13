@@ -21,6 +21,9 @@ PASSWORD ?= "abc123"
 prepare:
 	@[ -f $(TEST_FILE) ] || echo "Hello, World!" > $(TEST_FILE)
 
+build-cli:
+	@sh ./backend/scripts/build-cli.sh 0.0.1
+
 # Encrypt the test file
 encrypt:
 	go run $(CLI_SOURCE) encrypt -i $(TEST_FILE) -o $(ENCRYPTED_FILE) -p $(PASSWORD)
