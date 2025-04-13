@@ -46,4 +46,4 @@ build() {
     rm -rf dist/binaries
 }
 
-build "$1"    
+build "$@"    
