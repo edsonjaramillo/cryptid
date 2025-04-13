@@ -1,5 +1,6 @@
 # Variables
 CMD_DIR := backend/cmd
+VERSION ?= "0.0.0"
 LINTER := golangci-lint
 
 # Source and Output Files/Dirs
@@ -15,14 +16,14 @@ PASSWORD ?= "abc123"
 .DEFAULT_GOAL := help
 
 # Phony targets are rules that don't produce an output file with the name of the target.
-.PHONY: prepare lint format encrypt decrypt help 
+.PHONY: build-cli prepare lint format encrypt decrypt help 
 
 # Prepare the test file
 prepare:
 	@[ -f $(TEST_FILE) ] || echo "Hello, World!" > $(TEST_FILE)
 
 build-cli:
-	@sh ./scripts/build-cli.sh 0.0.1
+	@bash ./scripts/build-cli.bash $(VERSION)
 
 # Encrypt the test file
 encrypt:
@@ -38,6 +39,9 @@ lint:
 
 format:
 	$(LINTER) fmt
+
+act-build:
+	act --var-file .github/.env --workflows .github/workflows/build.yml
 
 help:
 	go run $(CLI_SOURCE) --help
