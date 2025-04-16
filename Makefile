@@ -1,6 +1,6 @@
 # Variables
 CMD_DIR := backend/cmd
-VERSION ?= "0.0.0"
+VERSION ?= "0.1.0"
 LINTER := golangci-lint
 
 # Source and Output Files/Dirs

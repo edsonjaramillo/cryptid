@@ -12,7 +12,7 @@ import (
 func main() {
 	app := &cli.App{
 		Name:    "cryptid",
-		Version: "0.0.1",
+		Version: "0.1.0",
 		Usage:   `Cryptid is a versatile CLI tool designed encrypting and decrypting files.`,
 		Commands: []*cli.Command{
 			commands.EncryptCommand,
