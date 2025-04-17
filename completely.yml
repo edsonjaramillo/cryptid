@@ -1,0 +1,49 @@
+hyde:
+- decrypt
+- encrypt
+- help
+- h
+- --help
+- -h
+- --version
+- -v
+
+hyde encrypt:
+- -i
+- --input
+- -o
+- --output
+- -p
+- --password
+- -h
+- --help
+
+hyde encrypt*-i:
+- <file>
+hyde encrypt*--input:
+- <file>
+
+hyde encrypt*-o:
+- <file>
+hyde encrypt*--output:
+- <file>
+
+hyde decrypt:
+- -i
+- --input
+- -o
+- --output
+- -p
+- --password
+- -h
+- --help
+
+hyde decrypt*-i:
+- <file>
+hyde decrypt*--input:
+- <file>  
+
+hyde decrypt*-o:
+- <file>
+hyde decrypt*--output:
+- <file>
