@@ -38,5 +38,11 @@ format:
 act-release:
 	act --var-file .github/.env --workflows .github/workflows/release.yml
 
+encrypt-help:
+	go run $(CLI_SOURCE) encrypt --help
+
+decrypt-help:
+	go run $(CLI_SOURCE) decrypt --help
+
 help:
 	go run $(CLI_SOURCE) --help

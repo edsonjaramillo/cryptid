@@ -2,16 +2,17 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
 	"github.com/edsonjaramillo/hyde/backend/internal/commands"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func main() {
-	app := &cli.App{
-		Name:    "Hyde",
+	cmd := &cli.Command{
+		Name:    "hyde",
 		Version: "0.1.0",
 		Usage:   `Hyde is a versatile CLI tool designed encrypting and decrypting files.`,
 		Commands: []*cli.Command{
@@ -20,7 +21,7 @@ func main() {
 		},
 	}
 
-	if err := app.Run(os.Args); err != nil {
+	if err := cmd.Run(context.Background(), os.Args); err != nil {
 		log.Fatal(err)
 	}
 }

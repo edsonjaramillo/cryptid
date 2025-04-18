@@ -3,13 +3,14 @@ package commands
 
 import (
 	"bytes"
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
 	"os"
 
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"golang.org/x/crypto/pbkdf2"
 )
 
@@ -18,7 +19,7 @@ var EncryptCommand = &cli.Command{
 	Name:   "encrypt",
 	Usage:  "AES file encryption",
 	Action: encryptAction,
-	Flags:  []cli.Flag{passphraseFlag, inputFileFlag, outputFileFlag},
+	Flags:  []cli.Flag{passwordFlag, inputFileFlag, outputFileFlag},
 }
 
 // DecryptCommand adds the decryption command to the CLI
@@ -26,29 +27,29 @@ var DecryptCommand = &cli.Command{
 	Name:   "decrypt",
 	Usage:  "AES file decryption",
 	Action: decryptAction,
-	Flags:  []cli.Flag{passphraseFlag, inputFileFlag, outputFileFlag},
+	Flags:  []cli.Flag{passwordFlag, inputFileFlag, outputFileFlag},
 }
 
 // Actions
 
-func encryptAction(cCtx *cli.Context) error {
-	passphrase := cCtx.String("passphrase")
-	inputFile := cCtx.String("input")
-	outputFile := cCtx.String("output")
+func encryptAction(_ context.Context, cmd *cli.Command) error {
+	password := cmd.String("password")
+	inputFile := cmd.String("input")
+	outputFile := cmd.String("output")
 
-	if err := encryptFile(inputFile, outputFile, passphrase); err != nil {
+	if err := encryptFile(inputFile, outputFile, password); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func decryptAction(cCtx *cli.Context) error {
-	passphrase := cCtx.String("passphrase")
-	inputFile := cCtx.String("input")
-	outputFile := cCtx.String("output")
+func decryptAction(_ context.Context, cmd *cli.Command) error {
+	password := cmd.String("password")
+	inputFile := cmd.String("input")
+	outputFile := cmd.String("output")
 
-	if err := decryptFile(inputFile, outputFile, passphrase); err != nil {
+	if err := decryptFile(inputFile, outputFile, password); err != nil {
 		return err
 	}
 
@@ -56,25 +57,30 @@ func decryptAction(cCtx *cli.Context) error {
 }
 
 // Flags
-var passphraseFlag = &cli.StringFlag{
-	Name:     "passphrase",
-	Aliases:  []string{"p", "password"},
-	Usage:    "Enter passphrase.",
+var passwordFlag = &cli.StringFlag{
+	Name:     "password",
+	Aliases:  []string{"p"},
+	Usage:    "Enter password.",
+	OnlyOnce: true,
 	Required: true,
 }
 
 var inputFileFlag = &cli.StringFlag{
-	Name:     "input",
-	Aliases:  []string{"i"},
-	Usage:    "Enter input file.",
-	Required: true,
+	Name:      "input",
+	Aliases:   []string{"i"},
+	Usage:     "Enter input file.",
+	OnlyOnce:  true,
+	TakesFile: true,
+	Required:  true,
 }
 
 var outputFileFlag = &cli.StringFlag{
-	Name:     "output",
-	Aliases:  []string{"o"},
-	Usage:    "Enter output file.",
-	Required: true,
+	Name:      "output",
+	Aliases:   []string{"o"},
+	Usage:     "Enter output file.",
+	OnlyOnce:  true,
+	TakesFile: true,
+	Required:  true,
 }
 
 const (
@@ -82,11 +88,11 @@ const (
 	keySize  = 32
 )
 
-func deriveKey(passphrase string, salt []byte) []byte {
-	return pbkdf2.Key([]byte(passphrase), salt, 4096, keySize, sha256.New)
+func deriveKey(password string, salt []byte) []byte {
+	return pbkdf2.Key([]byte(password), salt, 4096, keySize, sha256.New)
 }
 
-func encryptFile(inputFile, outputFile, passphrase string) error {
+func encryptFile(inputFile, outputFile, password string) error {
 	// Read the plaintext file
 	plaintext, err := os.ReadFile(inputFile)
 	if err != nil {
@@ -100,8 +106,8 @@ func encryptFile(inputFile, outputFile, passphrase string) error {
 		return err
 	}
 
-	// Derive a key from the passphrase
-	key := deriveKey(passphrase, salt)
+	// Derive a key from the password
+	key := deriveKey(password, salt)
 
 	// Create a new AES cipher using the key
 	block, err := aes.NewCipher(key)
@@ -131,7 +137,7 @@ func encryptFile(inputFile, outputFile, passphrase string) error {
 	return os.WriteFile(outputFile, finalData, 0644)
 }
 
-func decryptFile(inputFile, outputFile, passphrase string) error {
+func decryptFile(inputFile, outputFile, password string) error {
 	// Read the encrypted file
 	data, err := os.ReadFile(inputFile)
 	if err != nil {
@@ -146,7 +152,7 @@ func decryptFile(inputFile, outputFile, passphrase string) error {
 	ciphertext := data[saltSize+nonceSize:]
 
 	// Derive the key using the same method
-	key := deriveKey(passphrase, salt)
+	key := deriveKey(password, salt)
 
 	// Create the cipher
 	block, err := aes.NewCipher(key)
