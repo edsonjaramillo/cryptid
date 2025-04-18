@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Get the first argument as the VERSION
 VERSION="$1"
@@ -11,7 +11,7 @@ if [ -z "$VERSION" ]; then
 fi
 
 # Package name and output name
-PACKAGE_NAME="cryptid"
+PACKAGE_NAME="hyde"
 OUTPUT_NAME="${PACKAGE_NAME}-${VERSION}"
 
 # Platforms to build for

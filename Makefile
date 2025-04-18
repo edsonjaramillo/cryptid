@@ -16,16 +16,11 @@ PASSWORD ?= "abc123"
 .DEFAULT_GOAL := help
 
 # Phony targets are rules that don't produce an output file with the name of the target.
-.PHONY: build-cli prepare lint format encrypt decrypt help 
-
-# Prepare the test file
-prepare:
-	@[ -f $(TEST_FILE) ] || echo "Hello, World!" > $(TEST_FILE)
+.PHONY: build-cli lint format encrypt decrypt help 
 
 build-cli:
 	@bash ./scripts/build-cli.bash $(VERSION)
 
-# Encrypt the test file
 encrypt:
 	go run $(CLI_SOURCE) encrypt -i $(TEST_FILE) -o $(ENCRYPTED_FILE) -p $(PASSWORD)
 	@rm $(TEST_FILE)
@@ -40,8 +35,8 @@ lint:
 format:
 	$(LINTER) fmt
 
-act-build:
-	act --var-file .github/.env --workflows .github/workflows/build.yml
+act-release:
+	act --var-file .github/.env --workflows .github/workflows/release.yml
 
 help:
 	go run $(CLI_SOURCE) --help
