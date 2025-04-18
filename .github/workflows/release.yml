@@ -1,4 +1,4 @@
-name: Build
+name: Release
 
 on:
   push:
@@ -18,10 +18,10 @@ jobs:
       GO_VERSION: ${{ vars.GO_VERSION }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5.4.0
         with:
           cache-dependency-path: "**/*.sum"
           go-version: ${{ env.GO_VERSION }}
@@ -31,7 +31,7 @@ jobs:
 
       # get the tar.gz files from the dist directory and upload them to the release
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.2.1
         if: github.ref_type == 'tag'
         with:
           generate_release_notes: true
@@ -45,10 +45,10 @@ jobs:
       RUBY_VERSION: ${{ vars.RUBY_VERSION }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Install Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@v1.232.0
         with:
           ruby-version: ${{ env.RUBY_VERSION }}
 
@@ -59,7 +59,7 @@ jobs:
         run: completely generate && mv completely.bash hyde_completion.bash
 
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.2.1
         if: github.ref_type == 'tag'
         with:
           generate_release_notes: true

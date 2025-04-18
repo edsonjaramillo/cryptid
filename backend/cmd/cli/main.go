@@ -5,18 +5,18 @@ import (
 	"log"
 	"os"
 
-	"github.com/edsonjaramillo/crpytid/backend/internal/commands"
+	"github.com/edsonjaramillo/hyde/backend/internal/commands"
 	"github.com/urfave/cli/v2"
 )
 
 func main() {
 	app := &cli.App{
-		Name:    "cryptid",
+		Name:    "Hyde",
 		Version: "0.1.0",
-		Usage:   `Cryptid is a versatile CLI tool designed encrypting and decrypting files.`,
+		Usage:   `Hyde is a versatile CLI tool designed encrypting and decrypting files.`,
 		Commands: []*cli.Command{
-			commands.EncryptCommand,
 			commands.DecryptCommand,
+			commands.EncryptCommand,
 		},
 	}
 

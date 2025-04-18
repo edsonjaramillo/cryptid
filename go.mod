@@ -1,4 +1,4 @@
-module github.com/edsonjaramillo/crpytid
+module github.com/edsonjaramillo/hyde
 
 go 1.24.2
 

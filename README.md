@@ -1,3 +1,3 @@
-# Cryptid
+# Hyde
 
-Cryptid is a versatile CLI tool designed encrypting and decrypting files.
+Hyde is a versatile CLI tool designed encrypting and decrypting files.
