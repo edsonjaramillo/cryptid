@@ -3,6 +3,11 @@ CMD_DIR := backend/cmd
 VERSION ?= "0.1.0"
 LINTER := golangci-lint
 
+# Docker
+DOCKER_IMAGE := hyde
+DOCKER_CONTAINER := hyde-playground
+DOCKER_TAG := v0.1.0
+
 # Source and Output Files/Dirs
 CLI_SOURCE := $(CMD_DIR)/cli/main.go # Assuming cli.go is the entry point
 
@@ -46,3 +51,16 @@ decrypt-help:
 
 help:
 	go run $(CLI_SOURCE) --help
+
+docker-build:
+	docker build -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
+
+docker-build-no-cache:
+	docker build --no-cache -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
+
+docker-run:
+	docker rm -f $(DOCKER_CONTAINER) || true
+	docker run -d --name $(DOCKER_CONTAINER) $(DOCKER_IMAGE):$(DOCKER_TAG)
+
+docker-exec:
+	docker exec -it -u hyde-user $(DOCKER_CONTAINER) /bin/bash

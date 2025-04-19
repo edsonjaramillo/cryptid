@@ -3,14 +3,14 @@ name: Release
 on:
   push:
     tags:
-      - "*.*.*"
+      - "v*.*.*"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build-cli:
+  release:
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -29,38 +29,52 @@ jobs:
       - name: Build CLI
         run: make build-cli VERSION=${{ github.ref_name }}
 
-      # get the tar.gz files from the dist directory and upload them to the release
-      - name: Release
-        uses: softprops/action-gh-release@v2.2.1
-        if: github.ref_type == 'tag'
-        with:
-          generate_release_notes: true
-          files: dist/*.tar.gz
-
-  build-bash-completion:
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: write
-    env:
-      RUBY_VERSION: ${{ vars.RUBY_VERSION }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4.2.2
-
-      - name: Install Ruby
+      - name: Setup Ruby
         uses: ruby/setup-ruby@v1.232.0
         with:
-          ruby-version: ${{ env.RUBY_VERSION }}
+          ruby-version: ${{ env.RUBY_VERSION }} 
 
       - name: Install completely
         run: gem install completely
 
-      - name: Generate bash completion
-        run: completely generate && mv completely.bash hyde_completion.bash
+      # get the tar.gz files from the dist directory and upload them to the release
+      - name: Release CLI
+        uses: softprops/action-gh-release@v2.2.1
+        if: github.ref_type == 'tag'
+        with:
+          generate_release_notes: false
+          files: dist/*.tar.gz
 
-      - name: Release
+      - name: Release Bash Completion
         uses: softprops/action-gh-release@v2.2.1
         if: github.ref_type == 'tag'
         with:
           generate_release_notes: true
           files: hyde_completion.bash
+
+  build-and-publish-image:
+    runs-on: ubuntu-22.04
+    permissions:
+      packages: write # Required to publish to GitHub Packages
+      contents: read # Required to checkout the code
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.10.0
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6.15.0
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ github.ref_name }}
