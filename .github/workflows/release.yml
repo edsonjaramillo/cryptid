@@ -16,6 +16,8 @@ jobs:
       contents: write
     env:
       GO_VERSION: ${{ vars.GO_VERSION }}
+      RUBY_VERSION: ${{ vars.RUBY_VERSION }}
+      
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
