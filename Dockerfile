@@ -1,14 +1,14 @@
 # Stage 1: Build Bash Completion Script
 FROM ruby:3.4.3-alpine3.21 as completion_builder
-WORKDIR /app
+WORKDIR /_bash_completion
 RUN apk add --no-cache build-base
 RUN gem install completely --no-document
 COPY completely.yaml .
 RUN completely generate
 
 # Stage 2: Build the Go Binary
-FROM golang:1.24.2-alpine3.21 as builder
-WORKDIR /app
+FROM golang:1.24.2-alpine3.21 as cli_builder
+WORKDIR /_cli
 RUN apk add --no-cache git ca-certificates build-base gcc musl-dev
 
 # Copy only dependency files first to leverage Docker cache
@@ -22,25 +22,53 @@ COPY backend/ ./backend/
 # Build the Go application statically linked (if possible) and stripped
 # -ldflags="-w -s" reduces binary size by removing debug info
 # CGO_ENABLED=0 makes it statically linked against musl libc on Alpine if no C code is used.
-RUN CGO_ENABLED=0 go build -ldflags="-w -s" -o /app/hyde ./backend/cmd/cli/main.go
+RUN CGO_ENABLED=0 go build -ldflags="-w -s" -o /_cli/hyde ./backend/cmd/cli/main.go
 
-# Stage 3: Final Runtime Image
-FROM alpine:3.21
-WORKDIR /app
-
-# # Install runtime dependencies: bash for the shell and bash-completion package
+# Stage 3: Final Runtime 
+FROM node:22.14-alpine3.20 as runner
+ARG USER_NAME=hyde-user
+ARG GROUP_NAME=hyde-user
 RUN apk add --no-cache bash bash-completion
+RUN addgroup -S ${GROUP_NAME}
+RUN adduser -S ${USER_NAME} -G ${GROUP_NAME}
 
-# # Copy the bash completion script to the standard system-wide location
-# # This makes it available automatically for bash sessions if bash-completion is sourced.
-COPY --from=completion_builder /app/completely.bash /etc/bash_completion.d/hyde
-COPY --from=builder /app/hyde /usr/local/bin/hyde
+FROM runner as builder
+# Install pnpm
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.bashrc" SHELL="$(which bash)" PNPM_VERSION="10.7.1" bash -
+	
+	# Stage 4: Build the Frontend
+FROM builder as frontend_builder
+USER ${USER_NAME}
+WORKDIR /_frontend
 
-# Create a non-root user and group named 'hyde-user'
-RUN addgroup -S hyde-user && adduser -S hyde-user -G hyde-user
-USER hyde-user
+# Install dependencies
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
-# Copy the test file to be able to test the encryption/decryption
-COPY test-file.txt .
+# Build frontend
+COPY frontend/ ./
+RUN pnpm build
+RUN pnpm prune --production
 
-ENTRYPOINT [ "sleep", "infinity" ]
+# Stage 5: Final Runtime Image
+FROM runner as final_runner
+COPY --from=completion_builder /_bash_completion/completely.bash /etc/bash_completion.d/hyde
+COPY --from=cli_builder /_cli/hyde /usr/local/bin/hyde
+COPY --from=frontend_builder /_frontend/dist /_frontend/dist
+COPY --from=frontend_builder /_frontend/node_modules /_frontend/node_modules
+COPY --from=frontend_builder /_frontend/package.json /_frontend/package.json
+COPY --from=frontend_builder /pnpm /pnpm
+# Create directories for playground files
+RUN mkdir -p /home/${USER_NAME}/encrypted
+RUN mkdir -p /home/${USER_NAME}/decrypted
+RUN chown -R ${USER_NAME}:${GROUP_NAME} /home/${USER_NAME}
+# Copy test file to playground directory
+COPY test-file.txt /home/${USER_NAME}/test-file.txt
+
+COPY entrypoint.bash /usr/local/bin/entrypoint.bash
+ENTRYPOINT [ "/bin/bash", "/usr/local/bin/entrypoint.bash" ]
+
+# hyde encrypt -i test-file.txt -o encrypted/test-file.enc -p "asdf"
+# hyde decrypt -i encrypted/test-file.enc -o decrypted/test-file.txt -p "asdf"
