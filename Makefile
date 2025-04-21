@@ -23,6 +23,9 @@ PASSWORD ?= "abc123"
 # Phony targets are rules that don't produce an output file with the name of the target.
 .PHONY: build-cli lint format encrypt decrypt help 
 
+frontend-dev:
+	cd frontend && pnpm run dev
+
 build-cli:
 	@bash ./scripts/build-cli.bash $(VERSION)
 
@@ -60,7 +63,7 @@ docker-build-no-cache:
 
 docker-run:
 	docker rm -f $(DOCKER_CONTAINER) || true
-	docker run -d --name $(DOCKER_CONTAINER) $(DOCKER_IMAGE):$(DOCKER_TAG)
+	docker run -d --name $(DOCKER_CONTAINER) -h $(DOCKER_CONTAINER) -p 3000:3000 $(DOCKER_IMAGE):$(DOCKER_TAG)
 
 docker-exec:
 	docker exec -it -u hyde-user $(DOCKER_CONTAINER) /bin/bash
