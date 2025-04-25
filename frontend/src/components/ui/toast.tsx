@@ -10,12 +10,7 @@ export function Toaster(): JSX.Element {
 
 export function toast(toast: Omit<ToastProps, 'id'>): string | number {
   return sonnerToast.custom(id => (
-    <Toast
-      description={toast.description}
-      id={id}
-      status={toast.status}
-      title={toast.title}
-    />
+    <Toast description={toast.description} id={id} status={toast.status} title={toast.title} />
   ));
 }
 
@@ -78,11 +73,7 @@ export function Toast(props: ToastProps): JSX.Element {
           )}
         </div>
       </div>
-      <ToastCloseButton
-        backgroundStyle={backgroundStyle}
-        ring={ring}
-        textColor={textColor}
-      />
+      <ToastCloseButton backgroundStyle={backgroundStyle} ring={ring} textColor={textColor} />
     </button>
   );
 }
@@ -119,11 +110,7 @@ function ToastCloseButton({
         viewBox="0 0 24 24"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <path
-          d="M6 18 18 6M6 6l12 12"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+        <path d="M6 18 18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </div>
   );
@@ -134,11 +121,7 @@ interface IconProps {
 }
 type ToastIconProps = React.ComponentProps<'svg'> & IconProps;
 
-function ToastIcon({
-  textColor,
-  children,
-  ...props
-}: ToastIconProps): JSX.Element {
+function ToastIcon({ textColor, children, ...props }: ToastIconProps): JSX.Element {
   return (
     <svg
       className={cn('size-5 shrink-0', textColor)}
@@ -200,10 +183,7 @@ function ErrorIcon({ textColor }: IconProps): JSX.Element {
   );
 }
 
-function getIcon(
-  status: 'success' | 'error' | 'info' | 'warning',
-  textColor: string,
-): JSX.Element {
+function getIcon(status: 'success' | 'error' | 'info' | 'warning', textColor: string): JSX.Element {
   switch (status) {
     case 'success':
       return <SuccessIcon textColor={textColor} />;

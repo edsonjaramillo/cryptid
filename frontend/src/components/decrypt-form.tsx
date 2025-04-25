@@ -10,17 +10,15 @@ import { Input, InputError, InputGroup } from './ui/input';
 import { Label } from './ui/text';
 import { toast } from './ui/toast';
 
-export function EncryptForm() {
-  const form = useForm<UniversalFormData>({
-    resolver: standardSchemaResolver(universalSchema),
-  });
+export function DecryptForm() {
+  const form = useForm<UniversalFormData>({ resolver: standardSchemaResolver(universalSchema) });
 
   async function onSubmit(data: UniversalFormData) {
     const formData = new FormData();
     formData.append('password', data.password);
     formData.append('file', data.file[0]);
 
-    const response = await fetch('http://localhost:8080/encrypt', {
+    const response = await fetch('http://localhost:8080/decrypt', {
       method: 'POST',
       body: formData,
     });
@@ -31,7 +29,7 @@ export function EncryptForm() {
     }
 
     const blob = await response.blob();
-    downloadFile('encrypt', blob, data.file[0].name);
+    downloadFile('decrypt', blob, data.file[0].name);
 
     form.resetField('file');
     toast({ status: 'success', title: 'Encrypted file ready to download.' });
@@ -71,7 +69,7 @@ export function EncryptForm() {
           className="ml-auto block"
           disabled={form.formState.isSubmitting}
         >
-          {form.formState.isSubmitting ? 'Encrypting...' : 'Encrypt'}
+          {form.formState.isSubmitting ? 'Decrypting...' : 'Decrypt'}
         </Button>
       </Form>
     </FormProvider>
