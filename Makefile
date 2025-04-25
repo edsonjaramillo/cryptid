@@ -9,7 +9,8 @@ DOCKER_CONTAINER := hyde-playground
 DOCKER_TAG := v0.1.0
 
 # Source and Output Files/Dirs
-CLI_SOURCE := $(CMD_DIR)/cli/main.go # Assuming cli.go is the entry point
+CLI_SOURCE := $(CMD_DIR)/cli/main.go 
+API_SOURCE := $(CMD_DIR)/api/main.go 
 
 TEST_FILE := test-file.txt
 ENCRYPTED_FILE := encrypted.enc
@@ -23,10 +24,7 @@ PASSWORD ?= "abc123"
 # Phony targets are rules that don't produce an output file with the name of the target.
 .PHONY: build-cli lint format encrypt decrypt help 
 
-frontend-dev:
-	cd frontend && pnpm run dev
-
-build-cli:
+build-cli-bulk:
 	@bash ./scripts/build-cli.bash $(VERSION)
 
 encrypt:
@@ -37,11 +35,21 @@ decrypt:
 	go run $(CLI_SOURCE) decrypt -i $(ENCRYPTED_FILE) -o $(TEST_FILE) -p $(PASSWORD)
 	@rm $(ENCRYPTED_FILE)
 
+dev:
+	cd frontend && pnpm run dev &
+	go run $(API_SOURCE)
+
 lint:
-	$(LINTER) run 
+	$(LINTER) run
+	cd frontend && pnpm run lint
+
+lint-fix:
+	$(LINTER) run --fix
+	cd frontend && pnpm run lint:fix
 
 format:
 	$(LINTER) fmt
+	cd frontend && pnpm run format
 
 act-release:
 	act --var-file .github/.env --workflows .github/workflows/release.yml

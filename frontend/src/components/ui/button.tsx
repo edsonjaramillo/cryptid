@@ -9,9 +9,7 @@ interface RequiredButtonProps {
   type: React.ComponentProps<'button'>['type'];
 }
 
-export type ButtonProps = React.ComponentProps<'button'> &
-  RequiredButtonProps &
-  ButtonVariants;
+export type ButtonProps = React.ComponentProps<'button'> & RequiredButtonProps & ButtonVariants;
 
 export const buttonVariants = cva(
   'flex h-9 cursor-pointer items-center justify-center gap-2 rounded-base px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors duration-base focus-visible:ring-2 focus-visible:ring-info focus-visible:ring-offset-2 focus-visible:outline-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
@@ -52,12 +50,7 @@ export function Button({
 }: ButtonProps): JSX.Element {
   const style = buttonVariants({ color, disabled, width });
   return (
-    <button
-      className={cn(style, className)}
-      disabled={disabled}
-      type={type}
-      {...props}
-    >
+    <button className={cn(style, className)} disabled={disabled} type={type} {...props}>
       {children}
     </button>
   );

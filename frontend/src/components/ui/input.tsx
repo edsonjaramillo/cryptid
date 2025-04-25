@@ -22,7 +22,7 @@ export function Input({
 }: InputProps): JSX.Element {
   const { register } = useFormContext();
   const style = cn(
-    'h-9 w-full rounded-base border border-muted bg-transparent px-3 py-2 text-sm text-white shadow-base placeholder:text-gray focus-visible:ring-2 focus-visible:ring-info focus-visible:ring-offset-2 focus-visible:outline-0 disabled:cursor-not-allowed disabled:text-muted disabled:placeholder:text-muted',
+    'h-9 w-full rounded-base border border-muted bg-transparent px-3 py-2 text-sm text-white placeholder:text-gray focus-visible:ring-2 focus-visible:ring-info focus-visible:ring-offset-2 focus-visible:outline-0 disabled:cursor-not-allowed disabled:text-muted disabled:placeholder:text-muted',
     className,
   );
   return (
@@ -38,11 +38,7 @@ export function Input({
 }
 
 type InputGroupProps = React.ComponentProps<'div'>;
-export function InputGroup({
-  children,
-  className,
-  ...props
-}: InputGroupProps): JSX.Element {
+export function InputGroup({ children, className, ...props }: InputGroupProps): JSX.Element {
   const style = cn('grid w-full max-w-form items-center gap-2', className);
   return (
     <div className={style} {...props}>
@@ -52,11 +48,7 @@ export function InputGroup({
 }
 
 type InputColumnsProps = React.ComponentProps<'div'>;
-export function InputColumns({
-  children,
-  className,
-  ...props
-}: InputColumnsProps): JSX.Element {
+export function InputColumns({ children, className, ...props }: InputColumnsProps): JSX.Element {
   const style = cn('grid grid-cols-2 gap-4', className);
   return (
     <div className={style} {...props}>
@@ -72,12 +64,7 @@ export function InputDescription({
   ...props
 }: InputDescriptionProps): JSX.Element {
   return (
-    <Span
-      className={cn(className, 'line-clamp-1')}
-      size="sm"
-      textColor="gray"
-      {...props}
-    >
+    <Span className={cn(className, 'line-clamp-1')} size="sm" textColor="gray" {...props}>
       {children}
     </Span>
   );

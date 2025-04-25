@@ -14,6 +14,7 @@ export default antfu({
     },
   },
   rules: {
+    'no-console': 'off',
     'node/prefer-global/process': 'off',
     'react-refresh/only-export-components': 'off',
     'style/eol-last': 'off',
