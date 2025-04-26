@@ -37,7 +37,7 @@ func encryptAction(_ context.Context, cmd *cli.Command) error {
 		return err
 	}
 
-	encryptedData, err := encryption.EncryptFile(inputFileStream, password)
+	encryptedData, err := encryption.EncryptData(inputFileStream, password)
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func decryptAction(_ context.Context, cmd *cli.Command) error {
 		return err
 	}
 
-	plaintext, err := encryption.DecryptFile(inputFileStream, password)
+	plaintext, err := encryption.DecryptData(inputFileStream, password)
 	if err != nil {
 		return err
 	}

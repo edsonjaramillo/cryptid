@@ -24,7 +24,8 @@ export function DecryptForm() {
     });
 
     if (!response.ok) {
-      toast({ status: 'error', title: response.statusText });
+      const errorText = await response.text();
+      toast({ status: 'error', title: errorText });
       return;
     }
 
