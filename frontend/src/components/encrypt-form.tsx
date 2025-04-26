@@ -26,10 +26,10 @@ export function EncryptForm() {
     });
 
     if (!response.ok) {
-      toast({ status: 'error', title: response.statusText });
+      const errorText = await response.text();
+      toast({ status: 'error', title: errorText });
       return;
     }
-
     const blob = await response.blob();
     downloadFile('encrypt', blob, data.file[0].name);
 
