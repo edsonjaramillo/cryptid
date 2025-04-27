@@ -1,13 +1,14 @@
 # Stage 1: Build Bash Completion Script
-FROM ruby:3.4.3-alpine3.21 as completion_builder
+FROM ruby:3.4.3-alpine as completion_builder
 WORKDIR /_bash_completion
 RUN apk add --no-cache build-base
 RUN gem install completely --no-document
+
 COPY completely.yaml .
 RUN completely generate
 
 # Stage 2: Build the Go Binary
-FROM golang:1.24.2-alpine3.21 as cli_builder
+FROM golang:1.24.2-alpine as cli_builder
 WORKDIR /_cli
 RUN apk add --no-cache git ca-certificates build-base gcc musl-dev
 
@@ -25,7 +26,7 @@ COPY backend/ ./backend/
 RUN CGO_ENABLED=0 go build -ldflags="-w -s" -o /_cli/hyde ./backend/cmd/cli/main.go
 
 # Stage 3: Final Runtime 
-FROM node:22.14-alpine3.20 as runner
+FROM node:22-alpine as runner
 ARG USER_NAME=hyde-user
 ARG GROUP_NAME=hyde-user
 RUN apk add --no-cache bash bash-completion
@@ -38,7 +39,7 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.bashrc" SHELL="$(which bash)" PNPM_VERSION="10.7.1" bash -
 	
-	# Stage 4: Build the Frontend
+# Stage 4: Build the Frontend
 FROM builder as frontend_builder
 USER ${USER_NAME}
 WORKDIR /_frontend
@@ -60,15 +61,10 @@ COPY --from=frontend_builder /_frontend/dist /_frontend/dist
 COPY --from=frontend_builder /_frontend/node_modules /_frontend/node_modules
 COPY --from=frontend_builder /_frontend/package.json /_frontend/package.json
 COPY --from=frontend_builder /pnpm /pnpm
+
 # Create directories for playground files
-RUN mkdir -p /home/${USER_NAME}/encrypted
-RUN mkdir -p /home/${USER_NAME}/decrypted
 RUN chown -R ${USER_NAME}:${GROUP_NAME} /home/${USER_NAME}
-# Copy test file to playground directory
 COPY test-file.txt /home/${USER_NAME}/test-file.txt
 
 COPY entrypoint.bash /usr/local/bin/entrypoint.bash
 ENTRYPOINT [ "/bin/bash", "/usr/local/bin/entrypoint.bash" ]
-
-# hyde encrypt -i test-file.txt -o encrypted/test-file.enc -p "asdf"
-# hyde decrypt -i encrypted/test-file.enc -o decrypted/test-file.txt -p "asdf"

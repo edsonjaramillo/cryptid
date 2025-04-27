@@ -19,6 +19,7 @@ func main() {
 			commands.DecryptCommand,
 			commands.EncryptCommand,
 		},
+		HideHelpCommand: true,
 	}
 
 	if err := cmd.Run(context.Background(), os.Args); err != nil {

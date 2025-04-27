@@ -3,6 +3,7 @@ package commands
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/edsonjaramillo/hyde/backend/internal/encryption"
@@ -11,67 +12,109 @@ import (
 
 // EncryptCommand adds the encryption command to the CLI
 var EncryptCommand = &cli.Command{
-	Name:   "encrypt",
-	Usage:  "AES file encryption",
+	Name:      "encrypt",
+	Usage:     "AES file encryption",
+	UsageText: "hyde encrypt <file> --password <password>\n",
+	Arguments: []cli.Argument{
+		&cli.StringArg{
+			Name:      "input",
+			UsageText: "Enter input file.",
+		},
+	},
 	Action: encryptAction,
-	Flags:  []cli.Flag{passwordFlag, inputFileFlag, outputFileFlag},
+	Flags:  []cli.Flag{passwordFlag, deleteFlag},
 }
 
 // DecryptCommand adds the decryption command to the CLI
 var DecryptCommand = &cli.Command{
-	Name:   "decrypt",
-	Usage:  "AES file decryption",
+	Name:      "decrypt",
+	Usage:     "AES file decryption",
+	UsageText: "hyde decrypt <file> --password <password>\n",
+	Arguments: []cli.Argument{
+		&cli.StringArg{
+			Name:      "input",
+			UsageText: "Enter input file.",
+		},
+	},
 	Action: decryptAction,
-	Flags:  []cli.Flag{passwordFlag, inputFileFlag, outputFileFlag},
+	Flags:  []cli.Flag{passwordFlag, deleteFlag},
 }
 
 // Actions
 
 func encryptAction(_ context.Context, cmd *cli.Command) error {
+	file := cmd.StringArg("input")
+	filedata, err := os.ReadFile(file)
+	if err != nil {
+		return err
+	}
+
 	password := cmd.String("password")
-	inputFile := cmd.String("input")
-	outputFile := cmd.String("output")
-
-	inputFileStream, err := os.ReadFile(inputFile)
+	encryptedData, err := encryption.EncryptData(filedata, password)
 	if err != nil {
 		return err
 	}
 
-	encryptedData, err := encryption.EncryptData(inputFileStream, password)
-	if err != nil {
+	outputFilename := addEncExtension(file)
+	if err := os.WriteFile(outputFilename, encryptedData, 0644); err != nil {
 		return err
 	}
 
-	if err := os.WriteFile(outputFile, encryptedData, 0644); err != nil {
-		return err
+	delete := cmd.Bool("delete")
+	if delete {
+		if err := os.Remove(file); err != nil {
+			fmt.Printf("Error removing file: %v\n", err)
+		}
 	}
 
 	return nil
 }
 
 func decryptAction(_ context.Context, cmd *cli.Command) error {
+	encryptedFile := cmd.StringArg("input")
+	filedata, err := os.ReadFile(encryptedFile)
+	if err != nil {
+		return err
+	}
+
 	password := cmd.String("password")
-	inputFile := cmd.String("input")
-	outputFile := cmd.String("output")
-
-	inputFileStream, err := os.ReadFile(inputFile)
+	plaintext, err := encryption.DecryptData(filedata, password)
 	if err != nil {
 		return err
 	}
 
-	plaintext, err := encryption.DecryptData(inputFileStream, password)
-	if err != nil {
+	outputFilename := removeEncExtension(encryptedFile)
+	if err := os.WriteFile(outputFilename, plaintext, 0644); err != nil {
 		return err
 	}
 
-	if err := os.WriteFile(outputFile, plaintext, 0644); err != nil {
-		return err
+	remove := cmd.Bool("delete")
+	if remove {
+		if err := os.Remove(encryptedFile); err != nil {
+			fmt.Printf("Error removing file: %v\n", err)
+		}
 	}
 
 	return nil
 }
 
+// if .enc is not in the filename, add it, if it already has .enc then remove it
+func addEncExtension(file string) string {
+	if len(file) < 4 || file[len(file)-4:] != ".enc" {
+		return file + ".enc"
+	}
+	return file
+}
+
+func removeEncExtension(file string) string {
+	if len(file) < 4 || file[len(file)-4:] != ".enc" {
+		return file
+	}
+	return file[:len(file)-4]
+}
+
 // Flags
+
 var passwordFlag = &cli.StringFlag{
 	Name:     "password",
 	Aliases:  []string{"p"},
@@ -80,20 +123,10 @@ var passwordFlag = &cli.StringFlag{
 	Required: true,
 }
 
-var inputFileFlag = &cli.StringFlag{
-	Name:      "input",
-	Aliases:   []string{"i"},
-	Usage:     "Enter input file.",
-	OnlyOnce:  true,
-	TakesFile: true,
-	Required:  true,
-}
-
-var outputFileFlag = &cli.StringFlag{
-	Name:      "output",
-	Aliases:   []string{"o"},
-	Usage:     "Enter output file.",
-	OnlyOnce:  true,
-	TakesFile: true,
-	Required:  true,
+var deleteFlag = &cli.BoolFlag{
+	Name:     "delete",
+	Aliases:  []string{"d"},
+	Usage:    "Remove the original file after encryption.",
+	OnlyOnce: true,
+	Required: false,
 }
