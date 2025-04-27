@@ -5,17 +5,17 @@
   --color-*: initial;
 
   /* Pallete to choose from */
-  --primary-50: oklch(96.4% 0.022 58.79);
-  --primary-100: oklch(92.9% 0.043 57.14);
-  --primary-200: oklch(86.33% 0.088 57.33);
-  --primary-300: oklch(80.1% 0.132 55.27);
-  --primary-400: oklch(74.61% 0.171 51.56);
-  --primary-500: oklch(69.96% 0.202 44.44);
-  --primary-600: oklch(59.48% 0.169 45.48);
-  --primary-700: oklch(48.38% 0.135 46.68);
-  --primary-800: oklch(36.61% 0.098 49.07);
-  --primary-900: oklch(23.64% 0.059 54.21);
-  --primary-950: oklch(16.68% 0.037 67.32);
+  --primary-50: oklch(95.45% 0.029 310.16);
+  --primary-100: oklch(91.86% 0.053 310.13);
+  --primary-200: oklch(82.99% 0.113 309.27);
+  --primary-300: oklch(75.37% 0.167 308.41);
+  --primary-400: oklch(68.23% 0.216 306.79);
+  --primary-500: oklch(62.17% 0.259 305.31);
+  --primary-600: oklch(54.87% 0.293 298.7);
+  --primary-700: oklch(44.53% 0.24 298.62);
+  --primary-800: oklch(33% 0.177 299.45);
+  --primary-900: oklch(21.27% 0.112 302.27);
+  --primary-950: oklch(13.95% 0.072 307.42);
 
   /* replace the l with percentages */
   --gray-50: oklch(98.5% 0.002 247.839);
