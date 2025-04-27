@@ -60,8 +60,8 @@ func encryptAction(_ context.Context, cmd *cli.Command) error {
 		return err
 	}
 
-	delete := cmd.Bool("delete")
-	if delete {
+	deleteEnabled := cmd.Bool("delete")
+	if deleteEnabled {
 		if err := os.Remove(file); err != nil {
 			fmt.Printf("Error removing file: %v\n", err)
 		}
@@ -88,8 +88,8 @@ func decryptAction(_ context.Context, cmd *cli.Command) error {
 		return err
 	}
 
-	remove := cmd.Bool("delete")
-	if remove {
+	deleteEnabled := cmd.Bool("delete")
+	if deleteEnabled {
 		if err := os.Remove(encryptedFile); err != nil {
 			fmt.Printf("Error removing file: %v\n", err)
 		}
