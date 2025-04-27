@@ -125,7 +125,6 @@ var passwordFlag = &cli.StringFlag{
 
 var deleteFlag = &cli.BoolFlag{
 	Name:     "delete",
-	Aliases:  []string{"d"},
 	Usage:    "Remove the original file after encryption.",
 	OnlyOnce: true,
 	Required: false,
