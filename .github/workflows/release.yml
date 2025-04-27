@@ -52,7 +52,6 @@ jobs:
         if: github.ref_type == 'tag'
         with:
           generate_release_notes: true
-          name: v${{ github.ref_name }}
           files: hyde_completion.bash
 
   build-and-publish-image:
