@@ -39,6 +39,12 @@ jobs:
       - name: Install completely
         run: gem install completely
 
+      - name: Generate Bash Completion
+        run: |
+          mkdir -p dist
+          completely generate
+          cp ./completely.bash dist/hyde_completion.bash
+
       # get the tar.gz files from the dist directory and upload them to the release
       - name: Release CLI
         uses: softprops/action-gh-release@v2.2.1
@@ -52,7 +58,7 @@ jobs:
         if: github.ref_type == 'tag'
         with:
           generate_release_notes: true
-          files: hyde_completion.bash
+          files: dist/hyde_completion.bash
 
   build-and-publish-image:
     runs-on: ubuntu-22.04
