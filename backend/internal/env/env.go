@@ -2,11 +2,7 @@
 package env
 
 import (
-	"log"
 	"os"
-	"regexp"
-
-	z "github.com/Oudwins/zog"
 )
 
 // Schema is a struct that holds the environment variables for the application.
@@ -20,19 +16,18 @@ var initEnv = Schema{
 	APIPort:       os.Getenv("API_PORT"),
 }
 
-// allowed_origins default is http://localhost:3000
-var envSchema = z.Struct(z.Schema{
-	"AllowedOrgins": z.String().Optional().Default("http://localhost:3000"),
-	"APIPort":       z.String().Optional().Match(regexp.MustCompile(`^\d{1,5}$`)).Default("8080"),
-})
+// Values is a global variable that holds the parsed environment variables.
+var Values Schema
 
-// ConfigEnv parses the environment variables and returns a Schema struct.
-func ConfigEnv() Schema {
-	blank := Schema{}
-	var issues = envSchema.Parse(initEnv, &blank)
-	if issues != nil {
-		log.Fatalf("Error parsing env variables: %v", issues)
+func init() {
+	// Validate ALLOWED_ORGINS
+	if initEnv.AllowedOrgins == "" {
+		Values.AllowedOrgins = "http://localhost:3000"
 	}
 
-	return blank
+	// Validate API_PORT
+	if initEnv.APIPort == "" {
+		Values.APIPort = "8080"
+	}
+
 }

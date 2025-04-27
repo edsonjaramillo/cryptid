@@ -105,7 +105,7 @@ func corsMiddleware(allowedOrigin string) func(http.Handler) http.Handler {
 
 func main() {
 	// --- Environment Setup ---
-	env := env.ConfigEnv()
+	env := env.Values
 
 	// --- Router Setup ---
 	mux := http.NewServeMux()
