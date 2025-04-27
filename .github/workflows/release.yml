@@ -50,15 +50,10 @@ jobs:
         uses: softprops/action-gh-release@v2.2.1
         if: github.ref_type == 'tag'
         with:
-          generate_release_notes: false
-          files: dist/*.tar.gz
-
-      - name: Release Bash Completion
-        uses: softprops/action-gh-release@v2.2.1
-        if: github.ref_type == 'tag'
-        with:
           generate_release_notes: true
-          files: dist/hyde_completion.bash
+          files: |
+            dist/*.tar.gz
+            dist/hyde_completion.bash
 
   build-and-publish-image:
     runs-on: ubuntu-22.04
