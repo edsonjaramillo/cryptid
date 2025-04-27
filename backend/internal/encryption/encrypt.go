@@ -1,3 +1,4 @@
+// Package encryption provides functions to encrypt and decrypt data using AES-GCM.
 package encryption
 
 import (
@@ -18,7 +19,10 @@ const (
 	gcmNonceSize     = 12
 )
 
+// ErrInvalidCiphertext is returned when the ciphertext is invalid or too short.
 var ErrInvalidCiphertext = errors.New("encryption: invalid ciphertext")
+
+// ErrDecryptionFailed is returned when decryption fails due to an authentication error.
 var ErrDecryptionFailed = errors.New("encryption: decryption failed (authentication error)")
 
 func deriveKey(password string, salt []byte) []byte {

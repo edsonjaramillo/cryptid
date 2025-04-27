@@ -19,20 +19,35 @@ import (
 func getFile(r *http.Request) ([]byte, error) {
 	file, _, err := r.FormFile("file")
 	if err != nil {
-		return nil, errors.New("Error retrieving file")
+		return nil, errors.New("error retrieving file")
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Printf("Error closing file: %v", err)
+		}
+	}()
 
 	if file == nil {
-		return nil, errors.New("File is empty")
+		return nil, errors.New("file is empty")
 	}
 
 	inputFileStream, err := io.ReadAll(file)
 	if err != nil {
-		return nil, errors.New("Error reading file")
+		return nil, errors.New("error reading file")
 	}
 
 	return inputFileStream, nil
+}
+
+func writeResponse(w http.ResponseWriter, data []byte) {
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.WriteHeader(http.StatusOK)
+	_, err := w.Write(data)
+	if err != nil {
+		log.Printf("Error writing response: %v", err)
+		http.Error(w, "Error writing response", http.StatusInternalServerError)
+		return
+	}
 }
 
 func encryptHandler(w http.ResponseWriter, r *http.Request) {
@@ -48,9 +63,7 @@ func encryptHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/octet-stream")
-	w.WriteHeader(http.StatusOK)
-	w.Write(encryptedData)
+	writeResponse(w, encryptedData)
 }
 
 func decryptHandler(w http.ResponseWriter, r *http.Request) {
@@ -66,9 +79,7 @@ func decryptHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/octet-stream")
-	w.WriteHeader(http.StatusOK)
-	w.Write(decryptedData)
+	writeResponse(w, decryptedData)
 }
 
 func corsMiddleware(allowedOrigin string) func(http.Handler) http.Handler {
@@ -100,7 +111,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Apply middleware chain (CORS)
-	corsHandler := corsMiddleware(env.ALLOWED_ORIGINS)
+	corsHandler := corsMiddleware(env.AllowedOrgins)
 	finalEncryptHandler := corsHandler(http.HandlerFunc(encryptHandler))
 	finalDecryptHandler := corsHandler(http.HandlerFunc(decryptHandler))
 
@@ -110,7 +121,7 @@ func main() {
 
 	// --- Server Setup ---
 	server := &http.Server{
-		Addr:    ":" + env.API_PORT,
+		Addr:    ":" + env.APIPort,
 		Handler: mux,
 	}
 
@@ -119,8 +130,8 @@ func main() {
 	signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
-		log.Printf("Server listening on port :%s", env.API_PORT)
-		log.Printf("Allowed Origin: %s", env.ALLOWED_ORIGINS)
+		log.Printf("Server listening on port :%s", env.APIPort)
+		log.Printf("Allowed Origin: %s", env.AllowedOrgins)
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("Could not listen on %s: %v\n", server.Addr, err)
 		}
