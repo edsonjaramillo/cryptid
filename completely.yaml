@@ -8,7 +8,6 @@ hyde:
   - --password
   - -p
   - --delete
-  - -d
   - --help
   - -h
 - decrypt: *flags
