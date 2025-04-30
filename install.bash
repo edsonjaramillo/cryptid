@@ -6,6 +6,7 @@ set -euo pipefail
 # Constants
 readonly REPO="edsonjaramillo/hyde"
 readonly BINARY="hyde"
+readonly COMPLETIONS_FILENAME="hyde_completions.bash" # Bash completions filename
 readonly GITHUB_API="https://api.github.com/repos/${REPO}"
 
 # --- Configuration ---
@@ -31,7 +32,6 @@ OS=""
 ARCH=""
 VERSION=""
 TMP_DIR=""
-CHECKSUM_TOOL=""
 
 # --- Helper Functions ---
 
@@ -43,6 +43,10 @@ info() {
 error() {
     echo "ERROR: $1" >&2
     exit 1
+}
+
+warning() {
+    echo "WARNING: $1" >&2
 }
 
 # Cleanup temporary directory on exit
@@ -59,9 +63,9 @@ trap cleanup EXIT INT TERM ERR
 check_deps() {
     info "Checking dependencies..."
     local missing_deps=()
-    # Removed windows-specific checks
-    local deps=("curl" "tar" "mktemp" "uname" "mkdir" "mv" "chmod" "rm" "id" "grep" "cut" "awk")
-    
+    # Removed tar, sha256sum/shasum. Added install (more strongly recommended now).
+    local deps=("curl" "mktemp" "uname" "mkdir" "mv" "chmod" "rm" "id" "grep" "cut" "install")
+
     # Check basic dependencies
     for dep in "${deps[@]}"; do
         if ! command -v "$dep" &>/dev/null; then
@@ -69,29 +73,8 @@ check_deps() {
         fi
     done
 
-    # Check for checksum tool (sha256sum preferred)
-    if command -v sha256sum &>/dev/null; then
-        CHECKSUM_TOOL="sha256sum"
-    elif command -v shasum &>/dev/null; then
-        # Check if shasum supports -a 256 (macOS default shasum might not need it for SHA256, but standardizing)
-        if shasum -a 256 < /dev/null &> /dev/null; then
-           CHECKSUM_TOOL="shasum -a 256"
-        elif shasum < /dev/null &> /dev/null; then # Fallback if -a 256 fails but shasum exists
-            info "Using 'shasum' without '-a 256'. Assuming default is SHA256 or compatible."
-            CHECKSUM_TOOL="shasum"
-        else
-             missing_deps+=("sha256sum or compatible shasum")
-        fi
-    else
-        missing_deps+=("sha256sum or shasum")
-    fi
-    
-    # Check for install command (optional but preferred)
-    if ! command -v install &>/dev/null; then
-       info "Optional command 'install' not found. Will use 'mv' and 'chmod'."
-    fi
-    
     if [[ ${#missing_deps[@]} -gt 0 ]]; then
+        # 'install' is crucial now for setting permissions correctly, especially for completions.
         error "Missing required dependencies: ${missing_deps[*]}. Please install them and try again."
     fi
 
@@ -125,7 +108,7 @@ get_latest_version() {
     info "Fetching latest release version from GitHub..."
     local api_url="${GITHUB_API}/releases/latest"
     local response
-    
+
     if command -v jq &>/dev/null; then
         # Use jq for reliable parsing
         response=$(curl -fsSL "${api_url}" | jq -r '.tag_name') || {
@@ -152,162 +135,209 @@ get_latest_version() {
 download_file() {
     local url="$1"
     local dest="$2"
-    info "Downloading ${url} to ${dest}"
+    info "Downloading ${url} -> ${dest}"
     # Use -f to fail on server errors, -L to follow redirects, -o to save output
     if curl -fLo "$dest" "$url"; then
-        info "Download successful."
+        info "Download successful: $(basename "$dest")"
     else
         error "Download failed for ${url}"
     fi
 }
 
-# Verify checksum
-verify_checksum() {
-    local archive_path="$1"
-    local checksum_file_path="$2"
-    local archive_filename
-    archive_filename=$(basename "$archive_path")
-
-    info "Verifying checksum for ${archive_filename}..."
-    
-    # Extract the expected checksum for our specific archive from the checksums file
-    # Assumes format like: <checksum> <space(s)> <filename> (or <checksum> *<filename> for sha256sum)
-    # Handle potential leading '*' from sha256sum output format if needed when comparing
-    local expected_checksum
-    expected_checksum=$(grep "${archive_filename}" "$checksum_file_path" | awk '{print $1}')
-
-    if [[ -z "$expected_checksum" ]]; then
-        error "Could not find checksum for ${archive_filename} in ${checksum_file_path}"
-    fi
-
-    # Calculate checksum of the downloaded file
-    local calculated_checksum
-    # $CHECKSUM_TOOL might contain arguments (like shasum -a 256), handle correctly
-    # Use process substitution to avoid temp files and handle potential tool output variations
-    calculated_checksum=$( $CHECKSUM_TOOL < "$archive_path" | awk '{print $1}' )
-    
-    # Compare checksums
-    if [[ "$calculated_checksum" == "$expected_checksum" ]]; then
-        info "Checksum verification successful."
+# Determine appropriate Bash completions directory
+get_bash_completion_dir() {
+    local completions_dir=""
+    # Check if running as root or installing to system location
+    if [[ "$(id -u)" -eq 0 ]] || [[ "$INSTALL_DIR" == "/usr/local/bin" ]]; then
+        # System-wide completions directories (check common locations)
+        if [[ -d "/usr/share/bash-completion/completions" ]]; then
+            completions_dir="/usr/share/bash-completion/completions"
+        elif [[ -d "/etc/bash_completion.d" ]]; then
+            completions_dir="/etc/bash_completion.d"
+        else
+             warning "Could not find standard system-wide bash completions directory."
+             warning "Checked /usr/share/bash-completion/completions and /etc/bash_completion.d"
+             warning "Bash completions will not be installed."
+             echo "" # Return empty string
+             return
+        fi
     else
-        error "Checksum mismatch! Expected '${expected_checksum}', but got '${calculated_checksum}'. Aborting installation."
+        # User-specific completions directory (use XDG standard if possible)
+        local user_data_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
+        if [[ -n "$user_data_dir" ]]; then
+             completions_dir="${user_data_dir}/bash-completion/completions"
+        else
+             warning "Could not determine user data directory (XDG_DATA_HOME or ~/.local/share)."
+             warning "Bash completions will not be installed."
+             echo "" # Return empty string
+             return
+        fi
     fi
+    echo "$completions_dir"
 }
 
-# Install binary
-install_binary() {
-    info "Preparing installation..."
-    
-    # Binary name is always the same now
-    local binary_name="${BINARY}" 
-    
-    # Assume tar.gz format for Linux/macOS
-    local archive_ext="tar.gz" 
-    local archive_name="${BINARY}-${VERSION}-${OS}-${ARCH}.${archive_ext}"
-    local checksum_filename="${BINARY}-${VERSION}-checksums.sha256" # Assumed name
 
-    local download_url="https://github.com/${REPO}/releases/download/${VERSION}/${archive_name}"
-    local checksum_url="https://github.com/${REPO}/releases/download/${VERSION}/${checksum_filename}"
+# Ensure directory exists, creating if necessary (using sudo if needed)
+ensure_dir_exists() {
+    local dir_path="$1"
+    local use_sudo=false
 
-    # Create temporary directory
-    # Handle potential mktemp differences between Linux/macOS
-    TMP_DIR=$(mktemp -d -t hyde-install.XXXXXX) || error "Failed to create temporary directory."
-    info "Created temporary directory: ${TMP_DIR}"
-
-    local archive_path="${TMP_DIR}/${archive_name}"
-    local checksum_path="${TMP_DIR}/${checksum_filename}"
-    local extracted_binary_path="${TMP_DIR}/${binary_name}"
-
-    # Download archive and checksum file
-    download_file "$download_url" "$archive_path"
-    download_file "$checksum_url" "$checksum_path"
-
-    # Verify checksum
-    verify_checksum "$archive_path" "$checksum_path"
-
-    # Extract archive
-    info "Extracting ${archive_name}..."
-    case "$archive_ext" in
-        tar.gz) tar -xzf "$archive_path" -C "$TMP_DIR" || error "Failed to extract archive ${archive_path}" ;;
-        # zip) unzip -q "$archive_path" -d "$TMP_DIR" ;; # Keep if zip might be used
-        *) error "Unsupported archive extension: ${archive_ext}" ;;
-    esac
-
-    if [[ ! -f "$extracted_binary_path" ]]; then
-        error "Extraction failed: Binary '${binary_name}' not found in the archive at ${TMP_DIR}."
-    fi
-    info "Extraction successful."
-
-    # Ensure install directory exists
-    info "Ensuring install directory exists: ${INSTALL_DIR}"
-    # Use sudo only if we're trying to create dir outside HOME and don't have write perms on parent
-    # Check if the target directory exists and is writable OR if its parent exists and is writable
-    if [[ ! -d "$INSTALL_DIR" ]]; then
+    # Check if directory exists
+    if [[ -d "$dir_path" ]]; then
+        # Check if it's writable
+        if [[ ! -w "$dir_path" ]]; then
+            use_sudo=true # Might need sudo to write file later, even if dir exists
+        fi
+    else
+        # Directory doesn't exist, check if we need sudo to create its parent
         local parent_dir
-        parent_dir=$(dirname "$INSTALL_DIR")
-        # Check if we need sudo to create the directory
-        if [[ ! "$INSTALL_DIR" =~ ^"$HOME"/ ]] && [[ ! -w "$parent_dir" ]]; then
-             info "Attempting to create directory with sudo: ${INSTALL_DIR}"
-             if ! sudo mkdir -p "$INSTALL_DIR"; then
-                 error "Failed to create install directory: ${INSTALL_DIR}. Try creating it manually or check permissions."
-             fi
-        else
-             # Create directory normally (might fail if permissions are wrong on parent, handled later)
-             mkdir -p "$INSTALL_DIR" || error "Failed to create install directory: ${INSTALL_DIR}. Check parent directory permissions."
+        parent_dir=$(dirname "$dir_path")
+        # Need sudo if parent isn't writable OR if installing outside home dir as non-root
+        if [[ ! -w "$parent_dir" ]] || { [[ "$(id -u)" -ne 0 ]] && [[ ! "$dir_path" =~ ^"$HOME"/ ]]; }; then
+           use_sudo=true
         fi
     fi
 
-    # Check write permissions for the final install step right before installing
-    if [[ ! -w "$INSTALL_DIR" ]]; then
-        error "No write permission for install directory: ${INSTALL_DIR}. Please run with 'sudo', check directory permissions, or set HYDE_INSTALL_DIR to a writable location (e.g., in your home directory)."
-    fi
-    
-    local install_path="${INSTALL_DIR}/${binary_name}"
-    
-    # Install binary using 'install' or fallback to 'mv'/'chmod'
-    info "Installing ${binary_name} to ${install_path}..."
-    if command -v install &>/dev/null; then
-         # Use install command (preferred, handles permissions)
-         # Check if sudo is needed to write to the final location
-         if [[ ! -w "$INSTALL_DIR" ]] || { [[ -e "$install_path" ]] && [[ ! -w "$install_path" ]]; }; then
-             info "Using sudo to install binary..."
-             sudo install -m 0755 "$extracted_binary_path" "$install_path" || error "Failed to install binary to ${install_path} using 'sudo install'."
-         else
-             install -m 0755 "$extracted_binary_path" "$install_path" || error "Failed to install binary to ${install_path} using 'install' command."
-         fi
+    # Create the directory
+    if [[ "$use_sudo" == true ]]; then
+        info "Attempting to create/ensure directory with sudo: ${dir_path}"
+        if ! sudo mkdir -p "$dir_path"; then
+            error "Failed to create directory (with sudo): ${dir_path}. Check permissions or create it manually."
+        fi
     else
-         # Fallback to mv/chmod
-         info "Using 'mv' and 'chmod' to install binary..."
-         if [[ ! -w "$INSTALL_DIR" ]] || { [[ -e "$install_path" ]] && [[ ! -w "$install_path" ]]; }; then
-             info "Using sudo to move and set permissions..."
-             sudo mv -f "$extracted_binary_path" "$install_path" || error "Failed to move binary to ${install_path} using 'sudo mv'."
-             sudo chmod 755 "$install_path" || error "Failed to make binary executable using 'sudo chmod': ${install_path}."
-         else
-             mv -f "$extracted_binary_path" "$install_path" || error "Failed to move binary to ${install_path}."
-             chmod 755 "$install_path" || error "Failed to make binary executable: ${install_path}."
-         fi
+        info "Ensuring directory exists: ${dir_path}"
+        if ! mkdir -p "$dir_path"; then
+             error "Failed to create directory: ${dir_path}. Check permissions."
+        fi
     fi
 
-    # Final success message
+    # Return whether sudo might be needed for file operations within this dir
+    if [[ ! -w "$dir_path" ]]; then
+        echo "sudo_required"
+    else
+        echo "writable"
+    fi
+}
+
+# Install file using 'install' command (handles permissions and sudo)
+install_file() {
+    local source_path="$1"
+    local dest_path="$2"
+    local permissions="$3" # e.g., 0755 for executable, 0644 for data file
+    local dest_dir_status="$4" # "sudo_required" or "writable"
+
+    info "Installing $(basename "$source_path") to ${dest_path} with permissions ${permissions}..."
+
+    if [[ "$dest_dir_status" == "sudo_required" ]]; then
+        info "Using sudo to install file..."
+        if ! sudo install -m "$permissions" "$source_path" "$dest_path"; then
+            error "Failed to install file using 'sudo install': ${dest_path}"
+        fi
+    else
+         if ! install -m "$permissions" "$source_path" "$dest_path"; then
+             # If install fails without sudo, maybe permissions changed? Or dest file exists and isn't writable? Try sudo.
+             warning "Install command failed. Retrying with sudo..."
+             if ! sudo install -m "$permissions" "$source_path" "$dest_path"; then
+                  error "Failed to install file (even with sudo): ${dest_path}"
+             fi
+         fi
+    fi
+    info "Successfully installed $(basename "$dest_path")"
+}
+
+
+# Main installation function
+install_hyde() {
+    info "Preparing installation..."
+
+    # Binary source filename on GitHub releases
+    local binary_source_filename="${BINARY}-${VERSION}-${OS}-${ARCH}"
+    local binary_download_url="https://github.com/${REPO}/releases/download/${VERSION}/${binary_source_filename}"
+    local completions_download_url="https://github.com/${REPO}/releases/download/${VERSION}/${COMPLETIONS_FILENAME}"
+
+    # Create temporary directory
+    TMP_DIR=$(mktemp -d -t hyde-install.XXXXXX) || error "Failed to create temporary directory."
+    info "Created temporary directory: ${TMP_DIR}"
+
+    local downloaded_binary_path="${TMP_DIR}/${binary_source_filename}"
+    local downloaded_completions_path="${TMP_DIR}/${COMPLETIONS_FILENAME}"
+
+    # --- Download Files ---
+    download_file "$binary_download_url" "$downloaded_binary_path"
+    download_file "$completions_download_url" "$downloaded_completions_path"
+
+    # Basic check if downloaded files exist
+    if [[ ! -f "$downloaded_binary_path" ]]; then
+        error "Downloaded binary not found at ${downloaded_binary_path}. Aborting."
+    fi
+    if [[ ! -f "$downloaded_completions_path" ]]; then
+        # Warn but continue? Or error out? Let's warn for now.
+        warning "Downloaded completions file not found at ${downloaded_completions_path}. Skipping completions installation."
+        local completions_available=false
+    else
+        local completions_available=true
+    fi
+
+    # --- Install Binary ---
+    local binary_install_path="${INSTALL_DIR}/${BINARY}" # Final name is just 'hyde'
+    info "Preparing to install binary to ${binary_install_path}..."
+    local bin_dir_status
+    bin_dir_status=$(ensure_dir_exists "$INSTALL_DIR")
+    install_file "$downloaded_binary_path" "$binary_install_path" "0755" "$bin_dir_status" # Executable permissions
+
+
+    # --- Install Bash Completions ---
+    local completions_install_path=""
+    if [[ "$completions_available" == true ]]; then
+        local target_completions_dir
+        target_completions_dir=$(get_bash_completion_dir)
+
+        if [[ -n "$target_completions_dir" ]]; then
+            completions_install_path="${target_completions_dir}/${BINARY}" # Standard naming convention
+            info "Preparing to install bash completions to ${completions_install_path}..."
+            local comp_dir_status
+            comp_dir_status=$(ensure_dir_exists "$target_completions_dir")
+            install_file "$downloaded_completions_path" "$completions_install_path" "0644" "$comp_dir_status" # Read permissions
+        else
+            warning "Skipping Bash completions installation as target directory could not be determined or found."
+            warning "You might need to install the 'bash-completion' package."
+        fi
+    fi
+
+    # --- Final Messages ---
     echo ""
-    info "Successfully installed ${BINARY} (version ${VERSION}) to ${install_path}"
-    
-    # Check if INSTALL_DIR is in PATH
+    info "--------------------------------------------------"
+    info "${BINARY} (version ${VERSION}) installed successfully!"
+    info "  Binary: ${binary_install_path}"
+    if [[ -n "$completions_install_path" ]]; then
+       info "  Bash Completions: ${completions_install_path}"
+    fi
+    info "--------------------------------------------------"
+    echo ""
+
+    # Check if binary install directory is in PATH
     case ":$PATH:" in
-        *":${INSTALL_DIR}:"*) 
-            info "${INSTALL_DIR} is already in your PATH." 
+        *":${INSTALL_DIR}:"*)
+            info "${INSTALL_DIR} is already in your PATH."
             ;;
-        *) 
-            echo ""
-            echo "==> WARNING: ${INSTALL_DIR} is not in your PATH."
-            echo "    You should add it to your PATH environment variable."
-            echo "    Add the following line to your shell profile (e.g., ~/.bashrc, ~/.zshrc, ~/.profile):"
-            echo ""
-            echo "      export PATH=\"${INSTALL_DIR}:\$PATH\""
-            echo ""
-            echo "    Then, restart your shell or run 'source <your_profile_file>'."
+        *)
+            warning "${INSTALL_DIR} is not in your PATH."
+            warning "You should add it to your PATH environment variable."
+            warning "Add the following line to your shell profile (e.g., ~/.bashrc, ~/.zshrc, ~/.profile):"
+            warning ""
+            warning "  export PATH=\"${INSTALL_DIR}:\$PATH\""
+            warning ""
+            warning "Then, restart your shell or run 'source <your_profile_file>'."
             ;;
     esac
+
+    # Suggest restarting shell for completions
+    if [[ -n "$completions_install_path" ]]; then
+        echo ""
+        info "Bash completions have been installed."
+        info "Please restart your shell or run 'source ${completions_install_path}' for completions to take effect."
+        info "(Actual sourcing mechanism might depend on your 'bash-completion' setup)."
+    fi
     echo ""
     echo "You can now try running '${BINARY}'."
 }
@@ -318,7 +348,7 @@ main() {
     get_arch
     check_deps # Check dependencies after determining OS
     get_latest_version
-    install_binary
+    install_hyde
 }
 
 # Run main function
