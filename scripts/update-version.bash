@@ -46,6 +46,7 @@ NEW_VERSION=$2
 FILES_TO_UPDATE=(
 	"backend/cmd/cli/main.go"
 	"Makefile"
+    "README.md"
 )
 
 for FILE in "${FILES_TO_UPDATE[@]}"; do
