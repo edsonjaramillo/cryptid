@@ -12,9 +12,10 @@ import (
 
 func main() {
 	cmd := &cli.Command{
-		Name:    "hyde",
-		Version: "0.1.0",
-		Usage:   `Hyde is a versatile CLI tool designed encrypting and decrypting files.`,
+		Name:                  "hyde",
+		Version:               "0.1.0",
+		Usage:                 `Hyde is a versatile CLI tool designed encrypting and decrypting files.`,
+		EnableShellCompletion: true,
 		Commands: []*cli.Command{
 			commands.DecryptCommand,
 			commands.EncryptCommand,

@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/edsonjaramillo/hyde/backend/internal/encryption"
+	"github.com/edsonjaramillo/hyde/backend/internal/aes"
 	"github.com/urfave/cli/v3"
 )
 
@@ -51,12 +51,12 @@ func encryptAction(_ context.Context, cmd *cli.Command) error {
 	}
 
 	password := cmd.String("password")
-	encryptedData, err := encryption.EncryptData(filedata, password)
+	encryptedData, err := aes.EncryptData(filedata, password)
 	if err != nil {
 		return err
 	}
 
-	outputFilename := addEncExtension(file)
+	outputFilename := AddEncExtension(file)
 	if err := os.WriteFile(outputFilename, encryptedData, 0644); err != nil {
 		return err
 	}
@@ -79,12 +79,12 @@ func decryptAction(_ context.Context, cmd *cli.Command) error {
 	}
 
 	password := cmd.String("password")
-	plaintext, err := encryption.DecryptData(filedata, password)
+	plaintext, err := aes.DecryptData(filedata, password)
 	if err != nil {
 		return err
 	}
 
-	outputFilename := removeEncExtension(encryptedFile)
+	outputFilename := RemoveEncExtension(encryptedFile)
 	if err := os.WriteFile(outputFilename, plaintext, 0644); err != nil {
 		return err
 	}
@@ -99,7 +99,8 @@ func decryptAction(_ context.Context, cmd *cli.Command) error {
 	return nil
 }
 
-func addEncExtension(file string) string {
+// AddEncExtension adds the .enc extension to the file name if it doesn't already have it
+func AddEncExtension(file string) string {
 	base := filepath.Base(file)
 
 	if len(base) < 4 || file[len(base)-4:] != ".enc" {
@@ -108,7 +109,8 @@ func addEncExtension(file string) string {
 	return base
 }
 
-func removeEncExtension(file string) string {
+// RemoveEncExtension removes the .enc extension from the file name if it has it
+func RemoveEncExtension(file string) string {
 	base := filepath.Base(file)
 
 	if len(base) < 4 || base[len(base)-4:] != ".enc" {
