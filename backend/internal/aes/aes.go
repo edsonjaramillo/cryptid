@@ -1,5 +1,5 @@
-// Package encryption provides functions to encrypt and decrypt data using AES-GCM.
-package encryption
+// Package aes provides functions to encrypt and decrypt data using AES-GCM.
+package aes
 
 import (
 	"crypto/aes"

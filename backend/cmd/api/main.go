@@ -12,7 +12,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/edsonjaramillo/hyde/backend/internal/encryption"
+	"github.com/edsonjaramillo/hyde/backend/internal/aes"
 	"github.com/edsonjaramillo/hyde/backend/internal/env"
 )
 
@@ -57,7 +57,7 @@ func encryptHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	encryptedData, err := encryption.EncryptData(filestream, r.FormValue("password"))
+	encryptedData, err := aes.EncryptData(filestream, r.FormValue("password"))
 	if err != nil {
 		http.Error(w, "Error encrypting.", http.StatusInternalServerError)
 		return
@@ -73,7 +73,7 @@ func decryptHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	decryptedData, err := encryption.DecryptData(filestream, r.FormValue("password"))
+	decryptedData, err := aes.DecryptData(filestream, r.FormValue("password"))
 	if err != nil {
 		http.Error(w, "Invalid credentials", http.StatusInternalServerError)
 		return
