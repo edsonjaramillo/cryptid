@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/edsonjaramillo/hyde/backend/internal/encryption"
 	"github.com/urfave/cli/v3"
@@ -98,19 +99,22 @@ func decryptAction(_ context.Context, cmd *cli.Command) error {
 	return nil
 }
 
-// if .enc is not in the filename, add it, if it already has .enc then remove it
 func addEncExtension(file string) string {
-	if len(file) < 4 || file[len(file)-4:] != ".enc" {
-		return file + ".enc"
+	base := filepath.Base(file)
+
+	if len(base) < 4 || file[len(base)-4:] != ".enc" {
+		return base + ".enc"
 	}
-	return file
+	return base
 }
 
 func removeEncExtension(file string) string {
-	if len(file) < 4 || file[len(file)-4:] != ".enc" {
-		return file
+	base := filepath.Base(file)
+
+	if len(base) < 4 || base[len(base)-4:] != ".enc" {
+		return base
 	}
-	return file[:len(file)-4]
+	return base[:len(base)-4]
 }
 
 // Flags
