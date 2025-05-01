@@ -43,6 +43,9 @@ jobs:
         uses: golangci/golangci-lint-action@v7.0.0
         with:
             version: v2.0
+            
+      - name: Run tests
+        run: make test
 
       - name: Format code
         run: make format
