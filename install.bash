@@ -6,7 +6,6 @@ set -euo pipefail
 # Constants
 readonly REPO="edsonjaramillo/hyde"
 readonly BINARY="hyde"
-readonly COMPLETIONS_FILENAME="hyde_completions.bash" # Bash completions filename
 readonly GITHUB_API="https://api.github.com/repos/${REPO}"
 
 # --- Configuration ---
@@ -144,39 +143,6 @@ download_file() {
     fi
 }
 
-# Determine appropriate Bash completions directory
-get_bash_completion_dir() {
-    local completions_dir=""
-    # Check if running as root or installing to system location
-    if [[ "$(id -u)" -eq 0 ]] || [[ "$INSTALL_DIR" == "/usr/local/bin" ]]; then
-        # System-wide completions directories (check common locations)
-        if [[ -d "/usr/share/bash-completion/completions" ]]; then
-            completions_dir="/usr/share/bash-completion/completions"
-        elif [[ -d "/etc/bash_completion.d" ]]; then
-            completions_dir="/etc/bash_completion.d"
-        else
-             warning "Could not find standard system-wide bash completions directory."
-             warning "Checked /usr/share/bash-completion/completions and /etc/bash_completion.d"
-             warning "Bash completions will not be installed."
-             echo "" # Return empty string
-             return
-        fi
-    else
-        # User-specific completions directory (use XDG standard if possible)
-        local user_data_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
-        if [[ -n "$user_data_dir" ]]; then
-             completions_dir="${user_data_dir}/bash-completion/completions"
-        else
-             warning "Could not determine user data directory (XDG_DATA_HOME or ~/.local/share)."
-             warning "Bash completions will not be installed."
-             echo "" # Return empty string
-             return
-        fi
-    fi
-    echo "$completions_dir"
-}
-
-
 # Ensure directory exists, creating if necessary (using sudo if needed)
 ensure_dir_exists() {
     local dir_path="$1"
@@ -251,31 +217,19 @@ install_hyde() {
     info "Preparing installation..."
 
     # Binary source filename on GitHub releases
-    local binary_source_filename="${BINARY}-${VERSION}-${OS}-${ARCH}"
+    local binary_source_filename="${BINARY}-${OS}-${ARCH}"
     local binary_download_url="https://github.com/${REPO}/releases/download/${VERSION}/${binary_source_filename}"
-    local completions_download_url="https://github.com/${REPO}/releases/download/${VERSION}/${COMPLETIONS_FILENAME}"
-
     # Create temporary directory
     TMP_DIR=$(mktemp -d -t hyde-install.XXXXXX) || error "Failed to create temporary directory."
     info "Created temporary directory: ${TMP_DIR}"
 
     local downloaded_binary_path="${TMP_DIR}/${binary_source_filename}"
-    local downloaded_completions_path="${TMP_DIR}/${COMPLETIONS_FILENAME}"
-
     # --- Download Files ---
     download_file "$binary_download_url" "$downloaded_binary_path"
-    download_file "$completions_download_url" "$downloaded_completions_path"
 
     # Basic check if downloaded files exist
     if [[ ! -f "$downloaded_binary_path" ]]; then
         error "Downloaded binary not found at ${downloaded_binary_path}. Aborting."
-    fi
-    if [[ ! -f "$downloaded_completions_path" ]]; then
-        # Warn but continue? Or error out? Let's warn for now.
-        warning "Downloaded completions file not found at ${downloaded_completions_path}. Skipping completions installation."
-        local completions_available=false
-    else
-        local completions_available=true
     fi
 
     # --- Install Binary ---
@@ -285,33 +239,11 @@ install_hyde() {
     bin_dir_status=$(ensure_dir_exists "$INSTALL_DIR")
     install_file "$downloaded_binary_path" "$binary_install_path" "0755" "$bin_dir_status" # Executable permissions
 
-
-    # --- Install Bash Completions ---
-    local completions_install_path=""
-    if [[ "$completions_available" == true ]]; then
-        local target_completions_dir
-        target_completions_dir=$(get_bash_completion_dir)
-
-        if [[ -n "$target_completions_dir" ]]; then
-            completions_install_path="${target_completions_dir}/${BINARY}" # Standard naming convention
-            info "Preparing to install bash completions to ${completions_install_path}..."
-            local comp_dir_status
-            comp_dir_status=$(ensure_dir_exists "$target_completions_dir")
-            install_file "$downloaded_completions_path" "$completions_install_path" "0644" "$comp_dir_status" # Read permissions
-        else
-            warning "Skipping Bash completions installation as target directory could not be determined or found."
-            warning "You might need to install the 'bash-completion' package."
-        fi
-    fi
-
     # --- Final Messages ---
     echo ""
     info "--------------------------------------------------"
     info "${BINARY} (version ${VERSION}) installed successfully!"
     info "  Binary: ${binary_install_path}"
-    if [[ -n "$completions_install_path" ]]; then
-       info "  Bash Completions: ${completions_install_path}"
-    fi
     info "--------------------------------------------------"
     echo ""
 
@@ -330,14 +262,6 @@ install_hyde() {
             warning "Then, restart your shell or run 'source <your_profile_file>'."
             ;;
     esac
-
-    # Suggest restarting shell for completions
-    if [[ -n "$completions_install_path" ]]; then
-        echo ""
-        info "Bash completions have been installed."
-        info "Please restart your shell or run 'source ${completions_install_path}' for completions to take effect."
-        info "(Actual sourcing mechanism might depend on your 'bash-completion' setup)."
-    fi
     echo ""
     echo "You can now try running '${BINARY}'."
 }
