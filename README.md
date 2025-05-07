@@ -107,12 +107,12 @@ Navigate to `http://localhost:3000` (or the port you specified in the Docker run
 
 **Open a shell session**:
 ```bash
-docker exec -it -u hyde-user hyde-playground /bin/bash
+docker exec -it -u hyde hyde-playground /bin/bash
 ```
 
 **Go to Home Directory**:
 ```bash
-cd /home/hyde-user
+cd /home/hyde
 ```
 
 **Tips before starting commands**:

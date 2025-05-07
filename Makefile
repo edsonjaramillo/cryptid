@@ -113,4 +113,4 @@ docker-run:
 	docker run -d --name $(DOCKER_CONTAINER) -h $(DOCKER_CONTAINER) -p 3000:3000 -p 8080:8080 $(DOCKER_IMAGE):$(VERSION)
 
 docker-exec:
-	docker exec -it -u hyde-user $(DOCKER_CONTAINER) /bin/bash
+	docker exec -it -u hyde $(DOCKER_CONTAINER) /bin/bash
