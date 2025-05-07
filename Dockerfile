@@ -30,8 +30,8 @@ RUN CGO_ENABLED=0 go build -ldflags="-w -s" -o /_go/api ./backend/cmd/api/main.g
 FROM node:22-alpine as runner
 RUN apk add --no-cache bash bash-completion
 
-ARG USER_NAME=hyde-user
-ARG GROUP_NAME=hyde-user
+ARG USER_NAME=hyde
+ARG GROUP_NAME=hyde
 RUN addgroup -S ${GROUP_NAME}
 RUN adduser -S ${USER_NAME} -G ${GROUP_NAME}
 
